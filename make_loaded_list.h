@@ -216,7 +216,8 @@ namespace utils
     using value_type = typename base::value_type;
     using size_type  = typename base::size_type ;
 
-    using const_iterator = loaded_list_wrapper_iterator<loaded_list_wrapper, size_type, value_type>;
+    using iterator = loaded_list_wrapper_iterator<loaded_list_wrapper, size_type, value_type>;
+    using const_iterator = iterator;
 
   public:
 

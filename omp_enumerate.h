@@ -97,6 +97,8 @@ namespace omp
   template<typename Iterator>
   struct const_enumerate_iterator
   {
+    using iterator_category = std::bidirectional_iterator_tag;
+
     using wrapped_iterator = Iterator;
 
     using value_type = std::pair<const std::ptrdiff_t, typename const std::iterator_traits<wrapped_iterator>::reference>;
@@ -200,6 +202,8 @@ namespace omp
   template<typename Iterator>
   struct enumerate_iterator
   {
+    using iterator_category = std::bidirectional_iterator_tag;
+
     using wrapped_iterator = Iterator;
 
     using value_type = std::pair<const std::ptrdiff_t, typename std::iterator_traits<wrapped_iterator>::reference>;

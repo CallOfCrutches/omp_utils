@@ -62,6 +62,30 @@ namespace utils
     COmpPtr<list_type> list;
   };
 
+  template<typename ListType, typename IndexType, typename ValueType>
+  class shared_ptr_wrapper
+  {
+
+  public:
+    using list_type  = ListType ;
+    using value_type = ValueType;
+    using size_type  = IndexType;
+
+  public:
+    shared_ptr_wrapper( const std::shared_ptr<list_type>& list )
+      : list( list )
+    {}
+
+    list_type& get_list_() const noexcept
+    {
+      return *list;
+    }
+
+  private:
+    std::shared_ptr<list_type> list;
+  };
+
+
   template<typename ListWrapperType, typename IndexType, typename ValueType>
   class loaded_list_wrapper_iterator
   {
@@ -81,7 +105,7 @@ namespace utils
 
   public:
     loaded_list_wrapper_iterator( const list_wrapper_type& list, const size_type index )
-      : list( list ), index( index )
+      : list( list )
     {
       advance_( index );
     }
@@ -305,5 +329,17 @@ namespace utils
     list->LoadDataList( std::forward<Args>( args )... );
 
     return loaded_list_wrapper<com_ptr_wrapper<T, record_by_index::index_type, value_type>>( list );
+  }
+
+  template<typename T, typename... Args>
+  auto make_loaded_list( std::shared_ptr<T>& list, Args&&... args )
+  {
+    using record_by_index = get_record_by_index_<decltype( &T::GetRecordByIndex )>;
+
+    using value_type = std::remove_pointer_t<record_by_index::value_type>;
+
+    list->LoadDataList( std::forward<Args>( args )... );
+
+    return loaded_list_wrapper<shared_ptr_wrapper<T, record_by_index::index_type, value_type>>( list );
   }
 }

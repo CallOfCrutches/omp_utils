@@ -3,7 +3,11 @@ cmake_minimum_required(VERSION 3.16)
 project(OmpUtils VERSION 0.0.2)
 
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED True)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+option(OMP_UTILS_SHOW_IDE_SUPPORT "Set ide support for header files" ON)
+option(OMP_UTILS_BUILD_TESTS "Build tests" ON)
 
 ###################################################################################################
 
@@ -13,7 +17,18 @@ target_include_directories(omp_utils INTERFACE
     $<INSTALL_INTERFACE:include>
 )
 
+set(omp_utils_headers
+    include/omp_utils/make_loaded_list.h
+    include/omp_utils/omp_enumerate.h
+    include/omp_utils/omp_in.h
+    include/omp_utils/omp_range.h
+)
+
 add_library(OmpUtils::omp_utils ALIAS omp_utils)
+
+if(OMP_UTILS_SHOW_IDE_SUPPORT)
+    add_custom_target(omp_utils_ide SOURCES ${omp_utils_headers})
+endif()
 
 ###################################################################################################
 
@@ -33,5 +48,7 @@ install(FILES "${PROJECT_BINARY_DIR}/OmpUtilsConfigVersion.cmake" DESTINATION sh
 
 ###################################################################################################
 
-add_subdirectory(third-party/gtest)
-add_subdirectory(tests)
+if(OMP_UTILS_BUILD_TESTS)
+    add_subdirectory(third-party/gtest)
+    add_subdirectory(tests)
+endif()

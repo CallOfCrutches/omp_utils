@@ -1,6 +1,11 @@
 
-add_executable(omp_utils-unit-tests test.cpp)
+set(tests_sources
+    omp_range_tests.cpp
+)
 
+add_executable(omp_utils-unit-tests ${tests_sources})
+
+source_group(Sources\\tests FILES ${tests_sources})
 
 target_link_libraries(omp_utils-unit-tests 
     PRIVATE 

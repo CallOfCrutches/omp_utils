@@ -1,6 +1,5 @@
 #pragma once
 
-
 namespace utils
 {
   template<typename T>
@@ -14,7 +13,7 @@ namespace utils
     using value_type  = ValueType;
   };
 
-
+#ifdef _ATL_VER
   template<typename ListType, typename IndexType, typename ValueType>
   class com_ptr_wrapper
   {
@@ -37,8 +36,9 @@ namespace utils
   private:
     CComPtr<list_type> list;
   };
+#endif
 
-
+#if 0
   template<typename ListType, typename IndexType, typename ValueType>
   class omp_ptr_wrapper
   {
@@ -61,6 +61,7 @@ namespace utils
   private:
     COmpPtr<list_type> list;
   };
+#endif
 
   template<typename ListType, typename IndexType, typename ValueType>
   class shared_ptr_wrapper
@@ -306,7 +307,8 @@ namespace utils
   private:
     size_type count{};
   };
-
+  
+#if 0
   template<typename T, typename... Args>
   auto make_loaded_list( COmpPtr<T>& list, Args&&... args )
   {
@@ -318,7 +320,9 @@ namespace utils
 
     return loaded_list_wrapper<omp_ptr_wrapper<T, record_by_index::index_type, value_type>>( list );
   }
+#endif
 
+ifdef _ATL_VER
   template<typename T, typename... Args>
   auto make_loaded_list( CComPtr<T>& list, Args&&... args )
   {
@@ -330,6 +334,7 @@ namespace utils
 
     return loaded_list_wrapper<com_ptr_wrapper<T, record_by_index::index_type, value_type>>( list );
   }
+#endif
 
   template<typename T, typename... Args>
   auto make_loaded_list( std::shared_ptr<T>& list, Args&&... args )

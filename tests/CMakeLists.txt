@@ -1,6 +1,7 @@
 
 set(tests_sources
     omp_range_tests.cpp
+    omp_reversed_tests.cpp
 )
 
 add_executable(omp_utils-unit-tests ${tests_sources})

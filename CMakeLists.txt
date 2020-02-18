@@ -22,6 +22,7 @@ set(omp_utils_headers
     include/omp_utils/omp_enumerate.h
     include/omp_utils/omp_in.h
     include/omp_utils/omp_range.h
+    include/omp_utils/omp_reversed.h
 )
 
 add_library(OmpUtils::omp_utils ALIAS omp_utils)

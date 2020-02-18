@@ -143,7 +143,7 @@ namespace utils
       const value_type step;
     };
 
-    std::int64_t align_stop( std::int64_t start, 
+    inline std::int64_t align_stop( std::int64_t start, 
                              std::int64_t stop, 
                              std::int64_t step ) noexcept
     {
@@ -165,7 +165,7 @@ namespace utils
     }
   }
 
-  auto range( std::int64_t start, std::int64_t stop, std::int64_t step = 1 )
+  inline auto range( std::int64_t start, std::int64_t stop, std::int64_t step = 1 )
   {
     if( step == 0 )
       throw std::logic_error( "step is zero" );
@@ -175,7 +175,7 @@ namespace utils
     return detail::range_container_adapter( start, stop, step );
   }
 
-  auto range( std::int64_t stop )
+  inline auto range( std::int64_t stop )
   {
     return range( 0, stop );
   }

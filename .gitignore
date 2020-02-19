@@ -1,0 +1,16 @@
+.vs
+/bin
+/lib
+*.vcxproj*
+/CMakeFiles
+CMakeCache.txt
+*.sln
+/Debug
+/Release
+/x64
+*.cmake
+
+/tests/CMakeFiles
+/tests/Debug
+/tests/Release
+/tests/omp_utils-unit-tests.dir

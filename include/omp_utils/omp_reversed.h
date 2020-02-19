@@ -5,19 +5,30 @@ namespace utils
 {
   namespace detail
   {
-    template<typename Dummy>
-    constexpr std::false_type has_reverse( ... );
 
-    template<typename Container>
-    constexpr std::true_type has_reverse( 
-      decltype( std::declval<Container>().rbegin(), 
-                std::declval<Container>().rend() )* );
+#ifndef __clang__
+    template<typename... Ts>
+    using _void_t = std::void_t<Ts...>;
+#else // CWG 1558
+    template<typename...>
+    struct _void_struct { using type = void; };
+
+    template<typename... Ts>
+    using _void_t = typename _void_struct<Ts...>::type;
+#endif
+
+    template<typename T, typename = void>
+    struct can_be_reversed: public std::false_type {};
+
+    template<typename T>
+    struct can_be_reversed<T, _void_t<typename T::reverse_iterator>>
+      : public std::true_type {};
 
     template<typename Container>
     struct reversed_container_adapter
     {
 
-      static_assert( decltype( has_reverse<Container>( nullptr ) )(),
+      static_assert( can_be_reversed<std::decay_t<Container>>::value,
                      "This type doesn't support reverse operation" );
 
       template<typename Container = Container>
@@ -43,26 +54,6 @@ namespace utils
       auto end() const noexcept
       {
         return container.rend();
-      }
-
-      auto rbegin() noexcept
-      {
-        return container.begin();
-      }
-
-      auto rbegin() const noexcept
-      {
-        return container.begin();
-      }
-
-      auto rend() noexcept
-      {
-        return container.end();
-      }
-
-      auto rend() const noexcept
-      {
-        return container.end();
       }
 
     private:

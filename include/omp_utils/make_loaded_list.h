@@ -348,3 +348,4 @@ ifdef _ATL_VER
     return loaded_list_wrapper<shared_ptr_wrapper<T, record_by_index::index_type, value_type>>( list );
   }
 }
+//TODO: add operator[] method

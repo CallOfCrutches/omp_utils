@@ -385,3 +385,5 @@ namespace omp
     return enumerator( details::enumerate_ptr_( begin, end ), start );
   }
 }
+
+//TODO: fix reversed + enumerate

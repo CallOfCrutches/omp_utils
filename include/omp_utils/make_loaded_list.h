@@ -1,16 +1,33 @@
 #pragma once
 
+#include <memory>
+#include <type_traits>
+#include <iterator>
+
+
 namespace utils
 {
   template<typename T>
   struct get_record_by_index_ {};
 
+#if defined(_MSC_VER) && !defined(_WIN64)
+
   template<typename Ret, typename InterfaceType, typename IdxType, typename ValueType>
-  struct get_record_by_index_<Ret( InterfaceType::* )( IdxType, ValueType )>
+  struct get_record_by_index_<Ret( __stdcall InterfaceType::* )( IdxType, ValueType )>
   {
     using result_type = Ret;
     using index_type  = IdxType;
     using value_type  = ValueType;
+  };
+
+#endif
+
+  template<typename Ret, typename InterfaceType, typename IdxType, typename ValueType>
+  struct get_record_by_index_<Ret( InterfaceType::* )( IdxType, ValueType )>
+  {
+    using result_type = Ret;
+    using index_type = IdxType;
+    using value_type = ValueType;
   };
 
 #ifdef _ATL_VER
@@ -86,6 +103,22 @@ namespace utils
     std::shared_ptr<list_type> list;
   };
 
+  struct by_code
+  {
+    using code_type = int;
+
+    explicit by_code( int value ) noexcept
+      : value( value )
+    { }
+
+    code_type value_() const noexcept
+    {
+      return value;
+    }
+
+  private:
+    code_type value{};
+  };
 
   template<typename ListWrapperType, typename IndexType, typename ValueType>
   class loaded_list_wrapper_iterator
@@ -105,7 +138,8 @@ namespace utils
     using pointer   = const value_type*;
 
   public:
-    loaded_list_wrapper_iterator( const list_wrapper_type& list, const size_type index )
+    loaded_list_wrapper_iterator( const list_wrapper_type& list,
+                                  const size_type index )
       : list( list )
     {
       advance_( index );
@@ -247,9 +281,10 @@ namespace utils
   public:
 
     template<typename U>
-    loaded_list_wrapper( const U& ptr ): InterfaceWrapperType( ptr ) 
+    loaded_list_wrapper( const U& ptr )
+      : base( ptr )
     {
-      get_list_().Count( &count );
+      base::get_list_().Count( &count );
     }
 
     value_type at( const size_type idx ) const
@@ -269,6 +304,15 @@ namespace utils
       return value;
     }
 
+    value_type operator[]( by_code code ) const
+    {
+      value_type value{};
+
+      base::get_list_().GetRecordByCode( code.value_(), &value );
+
+      return value;
+    }
+
     value_type front() const
     {
       return ( *this )[size_type{}];
@@ -282,16 +326,6 @@ namespace utils
     const_iterator end() const
     {
       return const_iterator( *this, std::size( *this ) );
-    }
-
-    const_iterator cbegin() const
-    {
-      return begin();
-    }
-
-    const_iterator cend() const
-    {
-      return end();
     }
 
     bool empty() const noexcept
@@ -310,7 +344,7 @@ namespace utils
   
 #if 0
   template<typename T, typename... Args>
-  auto make_loaded_list( COmpPtr<T>& list, Args&&... args )
+  auto make_loaded_list( const COmpPtr<T>& list, Args&&... args )
   {
     using record_by_index = get_record_by_index_<decltype( &T::GetRecordByIndex )>;
 
@@ -322,9 +356,9 @@ namespace utils
   }
 #endif
 
-ifdef _ATL_VER
+#ifdef _ATL_VER
   template<typename T, typename... Args>
-  auto make_loaded_list( CComPtr<T>& list, Args&&... args )
+  auto make_loaded_list( const CComPtr<T>& list, Args&&... args )
   {
     using record_by_index = get_record_by_index_<decltype( &T::GetRecordByIndex )>;
 
@@ -337,7 +371,7 @@ ifdef _ATL_VER
 #endif
 
   template<typename T, typename... Args>
-  auto make_loaded_list( std::shared_ptr<T>& list, Args&&... args )
+  auto make_loaded_list( const std::shared_ptr<T>& list, Args&&... args )
   {
     using record_by_index = get_record_by_index_<decltype( &T::GetRecordByIndex )>;
 
@@ -348,4 +382,5 @@ ifdef _ATL_VER
     return loaded_list_wrapper<shared_ptr_wrapper<T, record_by_index::index_type, value_type>>( list );
   }
 }
-//TODO: add operator[] method
+
+// TODO: create custom reverse iterator

@@ -2,9 +2,9 @@
 #include <xutility>
 
 
-namespace utils
+namespace omp
 {
-  namespace detail
+  namespace details
   {
 
     template<typename Int>
@@ -170,9 +170,9 @@ namespace utils
     if( step == 0 )
       throw std::logic_error( "step is zero" );
 
-    stop = detail::align_stop( start, stop, step );
+    stop = details::align_stop( start, stop, step );
 
-    return detail::range_container_adapter( start, stop, step );
+    return details::range_container_adapter( start, stop, step );
   }
 
   inline auto range( std::int64_t stop )

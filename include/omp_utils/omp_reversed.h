@@ -1,9 +1,9 @@
 #pragma once
 #include <type_traits>
 
-namespace utils
+namespace omp
 {
-  namespace detail
+  namespace details
   {
 
 #ifndef __clang__
@@ -64,7 +64,7 @@ namespace utils
   template<typename Container>
   auto reversed( Container&& container )
   {
-    return detail::reversed_container_adapter<Container>(
+    return details::reversed_container_adapter<Container>(
       std::forward<Container>( container ) );
   }
 }

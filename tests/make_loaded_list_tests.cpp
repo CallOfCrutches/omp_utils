@@ -45,7 +45,7 @@ using testing::Return;
 using testing::SetArgPointee;
 using testing::_;
 
-TEST( utils_make_loaded_list, empty_test )
+TEST( omp_make_loaded_list, empty_test )
 {
   auto mock = std::make_shared<TestMock>();
 
@@ -54,13 +54,13 @@ TEST( utils_make_loaded_list, empty_test )
   EXPECT_CALL( *mock.get(), Count )
     .WillRepeatedly( DoAll( SetArgPointee<0>( 0 ), Return( true ) ) );
 
-  auto list = utils::make_loaded_list( mock );
+  auto list = omp::make_loaded_list( mock );
 
   ASSERT_TRUE( std::empty( list ) );
   ASSERT_TRUE( std::cbegin( list ) == std::cend( list ) );
 }
 
-TEST( utils_make_loaded_list, number_of_elements_test )
+TEST( omp_make_loaded_list, number_of_elements_test )
 {
   auto mock = std::make_shared<TestMock>();
 
@@ -72,14 +72,14 @@ TEST( utils_make_loaded_list, number_of_elements_test )
   EXPECT_CALL( *mock.get(), GetRecordByIndex )
     .WillRepeatedly( Return( true ) );
 
-  auto list = utils::make_loaded_list( mock );
+  auto list = omp::make_loaded_list( mock );
 
   ASSERT_FALSE( std::empty( list ) );
   ASSERT_TRUE( std::size( list ) == 5 );
   ASSERT_TRUE( std::cbegin( list ) + 5 == std::cend( list ) );
 }
 
-TEST( utils_make_loaded_list, get_value_iterator_test )
+TEST( omp_make_loaded_list, get_value_iterator_test )
 {
   auto mock = std::make_shared<TestMock>();
 
@@ -91,12 +91,12 @@ TEST( utils_make_loaded_list, get_value_iterator_test )
   EXPECT_CALL( *mock.get(), GetRecordByIndex )
     .WillRepeatedly( DoAll( SetArgPointee<1>( TestValue{ 42 } ), Return( true ) ) );
 
-  auto list = utils::make_loaded_list( mock );
+  auto list = omp::make_loaded_list( mock );
 
   ASSERT_TRUE( *std::cbegin( list ) == TestValue{ 42 } );
 }
 
-TEST( utils_make_loaded_list, get_value_operator_test )
+TEST( omp_make_loaded_list, get_value_operator_test )
 {
   auto mock = std::make_shared<TestMock>();
 
@@ -108,12 +108,12 @@ TEST( utils_make_loaded_list, get_value_operator_test )
   EXPECT_CALL( *mock.get(), GetRecordByIndex )
     .WillRepeatedly( DoAll( SetArgPointee<1>( TestValue{ 42 } ), Return( true ) ) );
 
-  auto list = utils::make_loaded_list( mock );
+  auto list = omp::make_loaded_list( mock );
 
   ASSERT_TRUE( list[0] == TestValue{ 42 } );
 }
 
-TEST( utils_make_loaded_list, get_value_at_test )
+TEST( omp_make_loaded_list, get_value_at_test )
 {
   auto mock = std::make_shared<TestMock>();
 
@@ -125,12 +125,12 @@ TEST( utils_make_loaded_list, get_value_at_test )
   EXPECT_CALL( *mock.get(), GetRecordByIndex )
     .WillRepeatedly( DoAll( SetArgPointee<1>( TestValue{ 42 } ), Return( true ) ) );
 
-  auto list = utils::make_loaded_list( mock );
+  auto list = omp::make_loaded_list( mock );
 
   ASSERT_TRUE( list.at( 0 ) == TestValue{ 42 } );
 }
 
-TEST( utils_make_loaded_list, get_value_at_exception_test )
+TEST( omp_make_loaded_list, get_value_at_exception_test )
 {
   auto mock = std::make_shared<TestMock>();
 
@@ -142,12 +142,12 @@ TEST( utils_make_loaded_list, get_value_at_exception_test )
   EXPECT_CALL( *mock.get(), GetRecordByIndex )
     .WillRepeatedly( DoAll( SetArgPointee<1>( TestValue{ 42 } ), Return( true ) ) );
 
-  auto list = utils::make_loaded_list( mock );
+  auto list = omp::make_loaded_list( mock );
 
   ASSERT_THROW( list.at( 12 ), std::logic_error );
 }
 
-TEST( utils_make_loaded_list, get_value_operator_by_code_test )
+TEST( omp_make_loaded_list, get_value_operator_by_code_test )
 {
   auto mock = std::make_shared<TestMock>();
 
@@ -159,12 +159,12 @@ TEST( utils_make_loaded_list, get_value_operator_by_code_test )
   EXPECT_CALL( *mock.get(), GetRecordByCode )
     .WillRepeatedly( []( long code, TestValue* value ) { value->dummy = code; return true; } );
 
-  auto list = utils::make_loaded_list( mock );
+  auto list = omp::make_loaded_list( mock );
 
-  ASSERT_TRUE( list[utils::by_code{ 11 }] == TestValue{ 11 } );
+  ASSERT_TRUE( list[omp::by_code{ 11 }] == TestValue{ 11 } );
 }
 
-TEST( utils_make_loaded_list, many_elements_test )
+TEST( omp_make_loaded_list, many_elements_test )
 {
   auto mock = std::make_shared<TestMock>();
 
@@ -176,7 +176,7 @@ TEST( utils_make_loaded_list, many_elements_test )
   EXPECT_CALL( *mock.get(), GetRecordByIndex )
     .WillRepeatedly( []( long index, TestValue* value ) { value->dummy = index; return true; } );
 
-  auto list = utils::make_loaded_list( mock );
+  auto list = omp::make_loaded_list( mock );
 
   const std::vector expecting = { 0,1,2,3,4,5,6,7,8,9 };
 
@@ -188,7 +188,7 @@ TEST( utils_make_loaded_list, many_elements_test )
                            []( auto& f, auto& s ) { return f.dummy == s; } ) );
 }
 
-/*TEST( utils_make_loaded_list, many_elements_reversed_test )
+/*TEST( omp_make_loaded_list, many_elements_reversed_test )
 {
   auto mock = std::make_shared<TestMock>();
 
@@ -200,7 +200,7 @@ TEST( utils_make_loaded_list, many_elements_test )
   EXPECT_CALL( *mock.get(), GetRecordByIndex )
     .WillRepeatedly( []( long index, TestValue* value ) { value->dummy = index; return true; } );
 
-  auto list = utils::make_loaded_list( mock );
+  auto list = omp::make_loaded_list( mock );
 
   const std::vector expecting = { 0,1,2,3,4,5,6,7,8,9 };
 
@@ -209,27 +209,27 @@ TEST( utils_make_loaded_list, many_elements_test )
                            []( auto& f, auto& s ) { return f.dummy == s; } ) );
 }*/
 
-/*TEST( utils_make_loaded_list, empty_test )
+/*TEST( omp_make_loaded_list, empty_test )
 {
 
 }
 
-TEST( utils_make_loaded_list, empty_test )
+TEST( omp_make_loaded_list, empty_test )
 {
 
 }
 
-TEST( utils_make_loaded_list, empty_test )
+TEST( omp_make_loaded_list, empty_test )
 {
 
 }
 
-TEST( utils_make_loaded_list, empty_test )
+TEST( omp_make_loaded_list, empty_test )
 {
 
 }
 
-TEST( utils_make_loaded_list, empty_test )
+TEST( omp_make_loaded_list, empty_test )
 {
 
 }*/

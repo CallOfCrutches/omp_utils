@@ -1,6 +1,6 @@
 #pragma once
 
-namespace utils
+namespace omp
 {
   template<typename ValueType, typename ArgType1, typename ArgType2, typename... ArgTypes>
   bool in( const ValueType& value, const ArgType1& arg1, const ArgType2& arg2, const ArgTypes&... args )

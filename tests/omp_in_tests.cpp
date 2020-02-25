@@ -7,27 +7,27 @@
 #include <forward_list>
 
 
-TEST( utils_in, integer_elements )
+TEST( omp_in, integer_elements )
 {
   const int one = 1, three = 3;
 
-  ASSERT_TRUE( utils::in( one, 4, 5, 3, 1, 2 ) );
+  ASSERT_TRUE( omp::in( one, 4, 5, 3, 1, 2 ) );
 
-  ASSERT_FALSE( utils::in( three, 1, 5, 6, 2, 1, 8 ) );
+  ASSERT_FALSE( omp::in( three, 1, 5, 6, 2, 1, 8 ) );
 }
 
-TEST( utils_in, floating_point_elements )
+TEST( omp_in, floating_point_elements )
 {
-  ASSERT_TRUE( utils::in( 1.51, 4, 5, 1.51, 1.1, 2.3, 1.5 ) );
+  ASSERT_TRUE( omp::in( 1.51, 4, 5, 1.51, 1.1, 2.3, 1.5 ) );
 
-  ASSERT_FALSE( utils::in( 2.1, 4, 2.2, 1, 0.9, 1, 8 ) );
+  ASSERT_FALSE( omp::in( 2.1, 4, 2.2, 1, 0.9, 1, 8 ) );
 }
 
-TEST( utils_in, string_elements )
+TEST( omp_in, string_elements )
 {
   const std::string dummy = "test";
 
-  ASSERT_TRUE( utils::in( dummy, "firefox", "safari", "test" ) );
+  ASSERT_TRUE( omp::in( dummy, "firefox", "safari", "test" ) );
 }
 
 namespace
@@ -49,12 +49,12 @@ namespace
   };
 }
 
-TEST( utils_in, enum_elements )
+TEST( omp_in, enum_elements )
 {
-  ASSERT_TRUE( utils::in( TestEnumClass::A, TestEnumClass::B, 
+  ASSERT_TRUE( omp::in( TestEnumClass::A, TestEnumClass::B, 
                           TestEnumClass::C, TestEnumClass::A ) );
 
-  ASSERT_TRUE( utils::in( A, B, C, 1, 5, D, 0 ) );
+  ASSERT_TRUE( omp::in( A, B, C, 1, 5, D, 0 ) );
 }
 
 namespace
@@ -75,9 +75,9 @@ namespace
   };
 }
 
-TEST( utils_in, container_in_simple )
+TEST( omp_in, container_in_simple )
 {
-  ASSERT_TRUE( utils::in( 42, TestSimple() ) );
+  ASSERT_TRUE( omp::in( 42, TestSimple() ) );
 }
 
 namespace
@@ -105,35 +105,35 @@ namespace
   };
 }
 
-TEST( utils_in, container_in_with_find )
+TEST( omp_in, container_in_with_find )
 {
-  ASSERT_TRUE( utils::in( 42, TestWithFind() ) );
+  ASSERT_TRUE( omp::in( 42, TestWithFind() ) );
 }
 
-TEST( utils_in, container_in_stls )
+TEST( omp_in, container_in_stls )
 {
   {
     const std::set<int> set_elements = { 1, 42, 5 };
-    ASSERT_TRUE( utils::in( 42, set_elements ) );
+    ASSERT_TRUE( omp::in( 42, set_elements ) );
   }
 
   {
     const std::vector<int> vec_elements = { 1, 42, 5 };
-    ASSERT_TRUE( utils::in( 42, vec_elements ) );
+    ASSERT_TRUE( omp::in( 42, vec_elements ) );
   }
 
   {
     const std::list<int> list_elements = { 1, 2, 6, 1 };
-    ASSERT_FALSE( utils::in( 42, list_elements ) );
+    ASSERT_FALSE( omp::in( 42, list_elements ) );
   }
 
   {
     const std::forward_list<int> fw_elements = { 1, 2, 6, 1 };
-    ASSERT_FALSE( utils::in( 42, fw_elements ) );
+    ASSERT_FALSE( omp::in( 42, fw_elements ) );
   }
 
   {
     const std::unordered_map<int, double> um_elements = { {1,5.0}, {62, 25.5}, {11, 242} };
-    ASSERT_FALSE( utils::in( 42, um_elements ) );
+    ASSERT_FALSE( omp::in( 42, um_elements ) );
   }
 }

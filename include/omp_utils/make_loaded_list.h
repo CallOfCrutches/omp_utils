@@ -5,7 +5,7 @@
 #include <iterator>
 
 
-namespace utils
+namespace omp
 {
   template<typename T>
   struct get_record_by_index_ {};

@@ -1,6 +1,6 @@
 
 set(tests_sources
-    make_loaded_list_tests.cpp
+    omp_make_loaded_list_tests.cpp
     omp_enumerate_tests.cpp
     omp_in_tests.cpp
     omp_range_tests.cpp

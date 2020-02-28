@@ -28,30 +28,35 @@ namespace omp
     struct reversed_container_adapter
     {
 
-      static_assert( can_be_reversed<std::decay_t<Container>>::value,
+      using decayed_container = std::decay_t<Container>;
+
+      static_assert( can_be_reversed<decayed_container>::value,
                      "This type doesn't support reverse operation" );
+
+      using iterator       = typename decayed_container::reverse_iterator;
+      using const_iterator = typename decayed_container::const_reverse_iterator;
 
       template<typename Container = Container>
       reversed_container_adapter( Container&& container )
         : container( std::forward<Container>( container ) )
       { }
 
-      auto begin() noexcept
+      auto begin() noexcept( noexcept( container.rbegin() ) )
       {
         return container.rbegin();
       }
 
-      auto begin() const noexcept
+      auto begin() const noexcept( noexcept( container.rbegin() ) )
       {
         return container.rbegin();
       }
 
-      auto end() noexcept
+      auto end() noexcept( noexcept( container.rend() ) )
       {
         return container.rend();
       }
 
-      auto end() const noexcept
+      auto end() const noexcept( noexcept( container.rend() ) )
       {
         return container.rend();
       }

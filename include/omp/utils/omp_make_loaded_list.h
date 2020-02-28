@@ -264,6 +264,139 @@ namespace omp
     value_type value{};
   };
 
+  template<typename Iterator>
+  class loaded_list_reversed_wrapper_iterator
+  {
+
+  public:
+    using base_iterator = Iterator;
+
+    using size_type = typename base_iterator::size_type;
+    using value_type = typename base_iterator::value_type;
+
+    using iterator_category = typename base_iterator::iterator_category;
+
+    using difference_type = std::make_signed_t<size_type>;
+
+    using reference = typename base_iterator::reference;
+    using pointer   = typename base_iterator::pointer  ;
+
+  public:
+    template<typename Iterator = base_iterator>
+    explicit loaded_list_reversed_wrapper_iterator( Iterator&& iterator )
+      : iterator( std::forward<Iterator>( iterator ) )
+    {}
+
+    reference operator*() const noexcept
+    {
+      return *iterator;
+    }
+
+    pointer operator->() const noexcept
+    {
+      return iterator.operator->();
+    }
+
+    loaded_list_reversed_wrapper_iterator& operator++()
+    {
+      --iterator;
+
+      return *this;
+    }
+
+    loaded_list_reversed_wrapper_iterator operator++( int )
+    {
+      auto ret = *this;
+      ++( *this );
+
+      return ret;
+    }
+
+    loaded_list_reversed_wrapper_iterator& operator--()
+    {
+      ++iterator;
+
+      return *this;
+    }
+
+    loaded_list_reversed_wrapper_iterator operator--( int )
+    {
+      auto ret = *this;
+      --( *this );
+
+      return ret;
+    }
+
+    loaded_list_reversed_wrapper_iterator& operator+=( const difference_type diff )
+    {
+      iterator -= diff;
+
+      return *this;
+    }
+
+    loaded_list_reversed_wrapper_iterator operator+( const difference_type diff ) const
+    {
+      auto ret = *this;
+
+      return ret += diff;
+    }
+
+    loaded_list_reversed_wrapper_iterator& operator-=( const difference_type diff )
+    {
+      return *this += -diff;
+    }
+
+    loaded_list_reversed_wrapper_iterator operator-( const difference_type diff ) const
+    {
+      auto ret = *this;
+
+      return ret -= diff;
+    }
+
+    difference_type operator-( const loaded_list_reversed_wrapper_iterator& rhs ) const noexcept
+    {
+      return rhs.iterator - iterator;
+    }
+
+    reference operator[]( const difference_type diff ) const noexcept
+    {
+      return *( *this + diff );
+    }
+
+    bool operator==( const loaded_list_reversed_wrapper_iterator& rhs ) const noexcept
+    {
+      return iterator == rhs.iterator;
+    }
+
+    bool operator!=( const loaded_list_reversed_wrapper_iterator& rhs ) const noexcept
+    {
+      return !( *this == rhs );
+    }
+
+    bool operator<( const loaded_list_reversed_wrapper_iterator& rhs ) const noexcept
+    {
+      return rhs.iterator < iterator;
+    }
+
+    bool operator>( const loaded_list_reversed_wrapper_iterator& rhs ) const noexcept
+    {
+      return ( rhs < *this );
+    }
+
+    bool operator<=( const loaded_list_reversed_wrapper_iterator& rhs ) const noexcept
+    {
+      return !( *this > rhs );
+    }
+
+    bool operator>=( const loaded_list_reversed_wrapper_iterator& rhs ) const noexcept
+    {
+      return !( *this < rhs );
+    }
+
+  private:
+    base_iterator iterator;
+  };
+
   template<typename InterfaceWrapperType>
   class loaded_list_wrapper: public InterfaceWrapperType
   {
@@ -277,6 +410,9 @@ namespace omp
 
     using iterator = loaded_list_wrapper_iterator<loaded_list_wrapper, size_type, value_type>;
     using const_iterator = iterator;
+
+    using reverse_iterator = loaded_list_reversed_wrapper_iterator<iterator>;
+    using const_reverse_iterator = reverse_iterator;
 
   public:
 
@@ -326,6 +462,16 @@ namespace omp
     const_iterator end() const
     {
       return const_iterator( *this, std::size( *this ) );
+    }
+
+    const_reverse_iterator rbegin() const
+    {
+      return const_reverse_iterator( end() - 1 );
+    }
+
+    const_reverse_iterator rend() const
+    {
+      return const_reverse_iterator( begin() - 1 );
     }
 
     bool empty() const noexcept
@@ -382,5 +528,3 @@ namespace omp
     return loaded_list_wrapper<shared_ptr_wrapper<T, record_by_index::index_type, value_type>>( list );
   }
 }
-
-// TODO: create custom reverse iterator

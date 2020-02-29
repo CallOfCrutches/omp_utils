@@ -1,5 +1,8 @@
 #pragma once
-#include <xutility>
+
+#include <cstdint>
+#include <iterator>
+#include <exception>
 
 
 namespace omp
@@ -144,8 +147,8 @@ namespace omp
     };
 
     inline std::int64_t align_stop( std::int64_t start, 
-                             std::int64_t stop, 
-                             std::int64_t step ) noexcept
+                                    std::int64_t stop, 
+                                    std::int64_t step ) noexcept
     {
       if( start == stop )
         return start;

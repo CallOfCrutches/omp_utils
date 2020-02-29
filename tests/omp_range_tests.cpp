@@ -1,5 +1,6 @@
-#include "gtest/gtest.h"
 #include "omp/utils/omp_range.h"
+
+#include "gtest/gtest.h"
 
 
 TEST( omp_range, zero_one_overload )

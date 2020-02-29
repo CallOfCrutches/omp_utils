@@ -11,8 +11,8 @@ option(OMP_UTILS_BUILD_TESTS "Build tests" ON)
 
 ###################################################################################################
 
-add_library(omp_utils INTERFACE)
-target_include_directories(omp_utils INTERFACE
+add_library(omp-utils INTERFACE)
+target_include_directories(omp-utils INTERFACE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
@@ -25,17 +25,17 @@ set(omp_utils_headers
     include/omp/utils/omp_reversed.h
 )
 
-add_library(OmpUtils::omp_utils ALIAS omp_utils)
+add_library(OmpUtils::omp-utils ALIAS omp-utils)
 
 if(OMP_UTILS_SHOW_IDE_SUPPORT)
-    add_custom_target(omp_utils_ide SOURCES ${omp_utils_headers})
+    add_custom_target(omp-utils-ide SOURCES ${omp_utils_headers})
 endif()
 
 ###################################################################################################
 
-install(DIRECTORY include/omp_utils DESTINATION include)
+install(DIRECTORY include/omp/utils DESTINATION include)
 
-install(TARGETS omp_utils EXPORT OmpUtilsConfig)
+install(TARGETS omp-utils EXPORT OmpUtilsConfig)
 install(EXPORT OmpUtilsConfig NAMESPACE OmpUtils:: DESTINATION share/OmpUtils/cmake)
 
 include(CMakePackageConfigHelpers)

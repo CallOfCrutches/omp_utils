@@ -1,10 +1,12 @@
-#include "gtest/gtest.h"
 #include "omp/utils/omp_in.h"
-#include <vector>
-#include <set>
-#include <list>
+
+#include "gtest/gtest.h"
+
 #include <unordered_map>
 #include <forward_list>
+#include <vector>
+#include <list>
+#include <set>
 
 
 TEST( omp_in, integer_elements )

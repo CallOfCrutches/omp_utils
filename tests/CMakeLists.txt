@@ -7,13 +7,13 @@ set(tests_sources
     omp_reversed_tests.cpp
 )
 
-add_executable(omp_utils-unit-tests ${tests_sources})
+add_executable(omp-utils-unit-tests ${tests_sources})
 
 source_group(Sources\\tests FILES ${tests_sources})
 
-target_link_libraries(omp_utils-unit-tests 
+target_link_libraries(omp-utils-unit-tests 
     PRIVATE 
-        OmpUtils::omp_utils
+        omp-utils
 
         gmock
         gmock_main

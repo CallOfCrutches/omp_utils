@@ -13,4 +13,4 @@ CMakeCache.txt
 /tests/CMakeFiles
 /tests/Debug
 /tests/Release
-/tests/omp_utils-unit-tests.dir
+/tests/omp-utils-unit-tests.dir

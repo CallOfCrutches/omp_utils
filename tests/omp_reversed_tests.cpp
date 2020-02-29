@@ -1,5 +1,7 @@
-#include "gtest/gtest.h"
 #include "omp/utils/omp_reversed.h"
+
+#include "gtest/gtest.h"
+
 #include <vector>
 #include <list>
 

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <type_traits>
+
 namespace omp
 {
   template<typename ValueType, typename ArgType1, typename ArgType2, typename... ArgTypes>

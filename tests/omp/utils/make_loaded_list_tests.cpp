@@ -1,5 +1,5 @@
-#include "omp/utils/omp_make_loaded_list.h"
-#include "omp/utils/omp_reversed.h"
+#include "omp/utils/make_loaded_list.h"
+#include "omp/utils/reversed.h"
 
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"

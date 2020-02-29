@@ -6,8 +6,9 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-option(OMP_UTILS_SHOW_IDE_SUPPORT "Set ide support for header files" ON)
 option(OMP_UTILS_BUILD_TESTS "Build tests" ON)
+option(OMP_UTILS_BUILD_EXAMPLES "Build examples" ON)
+option(OMP_UTILS_SHOW_IDE_SUPPORT "Set ide support for header files" ON)
 
 ###################################################################################################
 
@@ -18,11 +19,11 @@ target_include_directories(omp-utils INTERFACE
 )
 
 set(omp_utils_headers
-    include/omp/utils/omp_make_loaded_list.h
-    include/omp/utils/omp_enumerate.h
-    include/omp/utils/omp_in.h
-    include/omp/utils/omp_range.h
-    include/omp/utils/omp_reversed.h
+    include/omp/utils/in.h
+    include/omp/utils/range.h
+    include/omp/utils/reversed.h
+    include/omp/utils/enumerate.h
+    include/omp/utils/make_loaded_list.h
 )
 
 add_library(OmpUtils::omp-utils ALIAS omp-utils)
@@ -52,4 +53,10 @@ install(FILES "${PROJECT_BINARY_DIR}/OmpUtilsConfigVersion.cmake" DESTINATION sh
 if(OMP_UTILS_BUILD_TESTS)
     add_subdirectory(third-party/gtest)
     add_subdirectory(tests)
+endif()
+
+###################################################################################################
+
+if(OMP_UTILS_BUILD_EXAMPLES)
+    add_subdirectory(examples)
 endif()

@@ -1,4 +1,4 @@
-#include "omp/utils/omp_enumerate.h"
+#include "omp/utils/enumerate.h"
 
 #include "gtest/gtest.h"
 

@@ -16,10 +16,12 @@ namespace omp
 
       using value_type = Int;
 
-      using iterator_category = std::bidirectional_iterator_tag;
+      using iterator_category = std::forward_iterator_tag;
 
       using reference = const value_type&;
       using pointer = const value_type*;
+
+      using difference_type = value_type;
 
       range_iterator( value_type value, value_type step )
         : step( step )
@@ -49,22 +51,6 @@ namespace omp
         auto temp = *this;
 
         ++( *this );
-
-        return temp;
-      }
-
-      range_iterator& operator--() noexcept
-      {
-        value -= step;
-
-        return *this;
-      }
-
-      range_iterator operator--( int ) noexcept
-      {
-        auto temp = *this;
-
-        --( *this );
 
         return temp;
       }
@@ -155,7 +141,7 @@ namespace omp
 
       if( start > stop && step > 0 )
         return start;
-
+      
       if( start < stop && step < 0 )
         return start;
 

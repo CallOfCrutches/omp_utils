@@ -1,4 +1,4 @@
-#include "omp/utils/omp_range.h"
+#include "omp/utils/range.h"
 
 #include "gtest/gtest.h"
 

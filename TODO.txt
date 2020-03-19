@@ -4,9 +4,6 @@ sorted
 slice
 filter
 map
-min
-max
 all_of
 any_of
 none_of
-sum

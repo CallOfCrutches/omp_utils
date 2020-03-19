@@ -22,8 +22,8 @@ namespace omp
     template<typename T, typename F>
     struct collector
     {
-      collector( const T& value, F func ) noexcept
-        : value( value )
+      collector( T value, F func ) noexcept
+        : value( std::move( value ) )
         , func( std::move( func ) )
       {}
 
@@ -32,17 +32,15 @@ namespace omp
       {
         using common_t = std::common_type_t<T, V>;
         // TODO: make something with types
-        using collector_type = decltype( func( static_cast<common_t>( value.value ),
+        using collector_type = decltype( func( static_cast<common_t>( value ),
                                                static_cast<common_t>( cvalue.value ) ) );
 
-        return collector<collector_type, F>( func( static_cast<common_t>( value.value ),
+        return collector<collector_type, F>( func( static_cast<common_t>( value ),
                                                    static_cast<common_t>( cvalue.value ) ),
                                              std::move( func ) );
       }
 
-      operator T() { return value.value; }
-
-      collector_value<T> value;
+      T value;
       F func;
     };
 
@@ -59,7 +57,7 @@ namespace omp
 
     auto min_generic = []( const auto& f, const auto& s ) { return f < s ? f : s; };
 
-    return ( collector( first, std::move( min_generic ) ) | ... | collector_value<Others>( others ) );
+    return ( collector( first, std::move( min_generic ) ) | ... | collector_value<Others>( others ) ).value;
   }
   
   template<typename First, typename... Others>
@@ -70,7 +68,7 @@ namespace omp
 
     auto max_generic = []( const auto& f, const auto& s ) { return f > s ? f : s; };
 
-    return ( collector( first, std::move( max_generic ) ) | ... | collector_value<Others>( others ) );
+    return ( collector( first, std::move( max_generic ) ) | ... | collector_value<Others>( others ) ).value;
   }
 
   template<typename First, typename... Others>
@@ -81,6 +79,6 @@ namespace omp
 
     auto plus_generic = []( const auto& f, const auto& s ) { return f + s; };
 
-    return ( collector( first, std::move( plus_generic ) ) | ... | collector_value<Others>( others ) );
+    return ( collector( first, std::move( plus_generic ) ) | ... | collector_value<Others>( others ) ).value;
   }
 }

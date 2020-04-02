@@ -1,9 +1,4 @@
-zip
-zip_longest
+zip zip_longest
 sorted
 slice
-filter
-map
-all_of
-any_of
-none_of
+all_of any_of none_of

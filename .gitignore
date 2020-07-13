@@ -10,6 +10,8 @@ CMakeCache.txt
 /x64
 *.cmake
 
+/build*
+
 /tests/CMakeFiles
 /tests/Debug
 /tests/Release

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <type_traits>
+#include <utility>
 
 namespace omp
 {
@@ -37,8 +37,8 @@ namespace omp
       using iterator       = typename decayed_container::reverse_iterator;
       using const_iterator = typename decayed_container::const_reverse_iterator;
 
-      template<typename Container = Container>
-      reversed_container_adapter( Container&& container )
+      template<typename IncomingContainer = Container>
+      reversed_container_adapter( IncomingContainer&& container )
         : container( std::forward<Container>( container ) )
       { }
 

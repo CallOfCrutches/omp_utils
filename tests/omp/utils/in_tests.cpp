@@ -92,12 +92,12 @@ namespace
 
     auto begin() const noexcept
     {
-      return nullptr;
+      return static_cast<int*>( nullptr );
     }
 
     auto end() const noexcept
     {
-      return nullptr;
+      return static_cast<int*>( nullptr );
     }
 
     auto find( const key_type& ) const noexcept

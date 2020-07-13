@@ -282,8 +282,8 @@ namespace omp
     using pointer   = typename base_iterator::pointer  ;
 
   public:
-    template<typename Iterator = base_iterator>
-    explicit loaded_list_reversed_wrapper_iterator( Iterator&& iterator )
+    template<typename IncomingIterator = base_iterator>
+    explicit loaded_list_reversed_wrapper_iterator( IncomingIterator&& iterator )
       : iterator( std::forward<Iterator>( iterator ) )
     {}
 
@@ -521,10 +521,10 @@ namespace omp
   {
     using record_by_index = get_record_by_index_<decltype( &T::GetRecordByIndex )>;
 
-    using value_type = std::remove_pointer_t<record_by_index::value_type>;
+    using value_type = std::remove_pointer_t<typename record_by_index::value_type>;
 
     list->LoadDataList( std::forward<Args>( args )... );
 
-    return loaded_list_wrapper<shared_ptr_wrapper<T, record_by_index::index_type, value_type>>( list );
+    return loaded_list_wrapper<shared_ptr_wrapper<T, typename record_by_index::index_type, value_type>>( list );
   }
 }

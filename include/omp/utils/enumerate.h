@@ -93,34 +93,19 @@ namespace omp
       ValueType* begin_{};
       ValueType* end_{};
     };
-
-    template<typename T>
-    struct wrap_with_const
-    {
-      using type = std::add_const_t<T>;
-    };
-
-    template<typename T>
-    struct no_wrap_with
-    {
-      using type = T;
-    };
   }
 
-  template<typename Iterator, template<typename> typename WrapWith>
+  template<typename Iterator>
   struct enumerate_iterator
   {
     using iterator_category = std::forward_iterator_tag;
 
     using wrapped_iterator = Iterator;
 
-    template<typename T>
-    using wrap_with_t = typename WrapWith<T>::type;
+    using value_type = std::pair<const std::ptrdiff_t, typename std::iterator_traits<wrapped_iterator>::reference>;
 
-    using value_type = std::pair<const std::ptrdiff_t, wrap_with_t<typename std::iterator_traits<wrapped_iterator>::reference>>;
-
-    using pointer   = wrap_with_t<value_type>*;
-    using reference = wrap_with_t<value_type>&;
+    using pointer   = value_type*;
+    using reference = value_type&;
 
     enumerate_iterator( wrapped_iterator iter, std::ptrdiff_t value )
       : iterator_( std::move( iter ) )
@@ -159,29 +144,29 @@ namespace omp
       return iterator_ < rhs.iterator_;
     }
 
+    bool operator==( const enumerate_iterator& rhs ) const noexcept
+    {
+        return iterator_ == rhs.iterator_;
+    }
+
     bool operator>( const enumerate_iterator& rhs ) const noexcept
     {
-      return iterator_ > rhs.iterator_;
+      return rhs < *this;
     }
 
     bool operator<=( const enumerate_iterator& rhs ) const noexcept
     {
-      return iterator_ <= rhs.iterator_;
+      return !( *this > rhs );
     }
 
     bool operator>=( const enumerate_iterator& rhs ) const noexcept
     {
-      return iterator_ >= rhs.iterator_;
-    }
-
-    bool operator==( const enumerate_iterator& rhs ) const noexcept
-    {
-      return iterator_ == rhs.iterator_;
+      return !( *this < rhs );
     }
 
     bool operator!=( const enumerate_iterator& rhs ) const noexcept
     {
-      return iterator_ != rhs.iterator_;
+        return !( *this == rhs );
     }
 
     std::optional<value_type>& get_value_()
@@ -204,14 +189,14 @@ namespace omp
 
     using container_type = typename base_type::container_type;
 
-    using container_iterator = std::conditional_t<!std::is_const_v<container_type>, 
-                                                   typename container_type::iterator,
-                                                   typename container_type::const_iterator>;
+    using container_iterator = std::conditional_t<!std::is_const_v<container_type>,
+                                                  typename container_type::iterator,
+                                                  typename container_type::const_iterator>;
 
     using container_const_iterator = typename container_type::const_iterator;
 
-    using iterator       = enumerate_iterator<container_iterator, details::no_wrap_with>;
-    using const_iterator = enumerate_iterator<container_const_iterator, details::wrap_with_const>;
+    using iterator       = enumerate_iterator<container_iterator>;
+    using const_iterator = enumerate_iterator<container_const_iterator>;
 
     template<typename container_type = container_type>
     enumerator( container_type&& container, std::ptrdiff_t start )

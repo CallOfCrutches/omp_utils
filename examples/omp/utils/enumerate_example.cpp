@@ -16,7 +16,7 @@ namespace
     std::vector elements = { Integer{0}, Integer{1}, Integer{2} };
 
     for( auto&[idx, element] : omp::enumerate( elements, 1 ) )
-      std::cout << idx << ": " << element.i << " ";
+        std::cout << idx << ": " << element.i << " ";
 
     std::cout << std::endl;
   }

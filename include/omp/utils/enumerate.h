@@ -1,6 +1,5 @@
 #pragma once
 
-#include <optional>
 #include <iterator>
 
 
@@ -104,22 +103,34 @@ namespace omp
 
     using value_type = std::pair<const std::ptrdiff_t, typename std::iterator_traits<wrapped_iterator>::reference>;
 
-    using pointer   = value_type*;
-    using reference = value_type&;
+    struct pointer
+    {
+        pointer( value_type&& value ) noexcept( std::is_nothrow_move_constructible_v<value_type> )
+            : value_( std::move( value ) )
+        { }
 
-    enumerate_iterator( wrapped_iterator iter, std::ptrdiff_t value )
+        value_type* operator->() noexcept
+        {
+            return &value_;
+        }
+
+        value_type value_;
+    };
+    using reference = const value_type;
+
+    enumerate_iterator( wrapped_iterator&& iter, std::ptrdiff_t value )
       : iterator_( std::move( iter ) )
       , value_( value )
     { }
 
     reference operator*() noexcept
     {
-      return *get_value_();
+      return value_type( value_, *iterator_ );
     }
 
     pointer operator->() noexcept
     {
-      return &*get_value_();
+      return value_type( value_, *iterator_ );
     }
 
     enumerate_iterator& operator++()
@@ -169,17 +180,8 @@ namespace omp
         return !( *this == rhs );
     }
 
-    std::optional<value_type>& get_value_()
-    {
-      if( !pair_value_.has_value() || pair_value_->first != value_ )
-        pair_value_.emplace( value_, *iterator_ );
-
-      return pair_value_;
-    }
-
     wrapped_iterator iterator_;
     std::ptrdiff_t value_;
-    std::optional<value_type> pair_value_;
   };
 
   template<typename EnumeratorBase>

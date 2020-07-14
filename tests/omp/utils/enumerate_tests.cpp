@@ -105,3 +105,16 @@ TEST( omp_enumerate, pointers_case )
   for( auto&[idx, value] : omp::enumerate( std::cbegin( expecting ), std::cend( expecting) ) )
     ASSERT_EQ( idx, value );
 }
+
+TEST( omp_enumerate, iterator_for_loop_type )
+{
+  std::vector expecting = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+
+  auto enumeration = omp::enumerate( expecting );
+
+  for( auto it = std::begin( enumeration ); it != std::end( enumeration ); ++it )
+    it->second += 1;
+
+  for( auto it = std::begin( enumeration ); it != std::end( enumeration ); ++it )
+    ASSERT_EQ( it->first + 1, it->second );
+}

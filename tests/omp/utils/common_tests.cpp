@@ -124,3 +124,27 @@ TEST( omp_sum, user_types )
 
   ASSERT_TRUE( typeid( res ).name() == typeid( test_element ).name() );
 }
+
+TEST( omp_tuple_map, simple_use_case )
+{
+  auto initial = std::make_tuple( 1, 2.0, 'a', 4, 5 );
+  auto expected = std::make_tuple( 2, 3.0, 'b', 5, 6 );
+
+  auto result = omp::tuple_map( []( const auto& val ) { return val + 1; }, initial );
+
+  ASSERT_EQ( expected, result );
+}
+
+TEST( omp_tie_map, simple_use_case )
+{
+  auto expected = std::make_tuple( 1, 2.0, 'a', 4, 5 );
+  auto result = omp::tie_map( []( auto& val ) -> auto& { return val; }, expected );
+
+  std::get<0>( result ) -= 1;
+  std::get<1>( result ) -= 1;
+  std::get<2>( result ) -= 1;
+  std::get<3>( result ) -= 1;
+  std::get<4>( result ) -= 1;
+
+  ASSERT_EQ( expected, result );
+}

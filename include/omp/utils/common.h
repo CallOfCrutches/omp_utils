@@ -46,18 +46,55 @@ namespace omp
     };
 
     template<typename T, typename F>
-    collector( const T&, F&& )->collector<T, F>;
+    collector( const T&, F&& ) -> collector<T, F>;
 
-    template<typename Callable, typename... Types, std::size_t... Idxs>
-    auto tuple_map_( Callable&& call, const std::tuple<Types...>& tup, std::index_sequence<Idxs...> )
+    template<typename Tuple>
+    constexpr bool support_get_one_( decltype( std::get<0>( std::declval<Tuple>() ), int() ) ) { return true; }
+    constexpr bool support_get_one_( ... ) { return false; }
+
+    template<typename Tuple, typename... Tuples>
+    constexpr bool support_get_()
     {
-      return std::make_tuple( call( std::get<Idxs>( tup ) )... );
+      return support_get_one_<Tuple>( 0 ) && ( support_get_one_<Tuples>( 0 ) && ... );
     }
 
-    template<typename Callable, typename... Types, std::size_t... Idxs>
-    auto tie_map_( Callable&& call, std::tuple<Types...>& tup, std::index_sequence<Idxs...> )
+    template<typename Tuple, typename... Tuples>
+    constexpr bool same_size_()
     {
-      return std::tie( call( std::get<Idxs>( tup ) )... );
+      return std::tuple_size_v<std::remove_reference_t<Tuple>> &&
+        ( ( std::tuple_size_v<std::remove_reference_t<Tuple>> == std::tuple_size_v<std::remove_reference_t<Tuples>> )
+          && ... );
+    }
+
+    template<std::size_t Idx, typename Callable, typename... Tuples>
+    decltype( auto ) map_one( Callable&& call, Tuples&&... tups )
+    {
+      return std::forward<Callable>( call )( std::get<Idx>( std::forward<Tuples>( tups ) )... );
+    }
+
+    template<std::size_t Idx, typename Callable, typename Value, typename... Tuples>
+    decltype( auto ) reduce_one( Callable&& call, Value&& initial, Tuples&&... tups )
+    {
+      return std::forward<Callable>( call )( initial, std::get<Idx>( std::forward<Tuples>( tups )... ) );
+    }
+
+    template<std::size_t... Idxs, typename Callable, typename Value, typename... Tuples>
+    auto tuple_reduce_( std::index_sequence<Idxs...>, Callable&& call, Value&& initial, Tuples&&... tups )
+    {
+    }
+
+    template<std::size_t... Idxs, typename Callable, typename... Tuples>
+    auto tuple_map_( std::index_sequence<Idxs...>, Callable&& call, Tuples&&... tups )
+    {
+      if constexpr( ( std::is_reference_v<decltype( map_one<Idxs>(
+        std::forward<Callable>( call ), std::forward<Tuples>( tups )... ) )> && ... ) )
+      {
+        return std::tie( map_one<Idxs>( std::forward<Callable>( call ), std::forward<Tuples>( tups )... )... );
+      }
+      else
+      {
+        return std::make_tuple( map_one<Idxs>( std::forward<Callable>( call ), std::forward<Tuples>( tups )... )... );
+      }
     }
   }
 
@@ -94,22 +131,17 @@ namespace omp
     return ( collector( first, std::move( plus_generic ) ) | ... | collector_value<Others>( others ) ).value;
   }
 
-  // Make working for many args like tuples. 
-  // Hint: std::get<>.
-  template<typename Callable, typename... Types>
-  auto tuple_map( Callable&& call, const std::tuple<Types...>& tup )
+  template<typename Callable, typename... Tuples,
+    std::enable_if_t<details::support_get_<Tuples...>() && details::same_size_<Tuples...>(), int> = 0>
+  auto tuple_map( Callable&& call, Tuples&&... tups )
   {
-    return details::tuple_map_( std::forward<Callable>( call ), tup, std::index_sequence_for<Types...>() );
+    using FirstTuple = std::remove_reference_t<std::tuple_element_t<0, std::tuple<Tuples...>>>;
+    return details::tuple_map_( std::make_index_sequence<std::tuple_size_v<FirstTuple>>(),
+                                std::forward<Callable>( call ), std::forward<Tuples>( tups )... );
   }
 
-  template<typename Callable, typename... Types>
-  auto tie_map( Callable&& call, std::tuple<Types...>& tup )
-  {
-    return details::tie_map_( std::forward<Callable>( call ), tup, std::index_sequence_for<Types...>() );
-  }
-
-  template<typename... Types, typename Callable, typename Value>
-  auto tuple_reduce( Callable&& call, const std::tuple<Types...>& tup, Value&& initial )
+  template<typename Callable, typename Value, typename... Tuples>
+  auto tuple_reduce( Callable&& call, Value&& initial, Tuples&&... tups )
   {
     return nullptr;
   }

@@ -125,7 +125,7 @@ TEST( omp_sum, user_types )
   ASSERT_TRUE( typeid( res ).name() == typeid( test_element ).name() );
 }
 
-TEST( omp_tuple_map, simple_use_case )
+TEST( omp_tuple_map_value, simple_use_case )
 {
   auto initial = std::make_tuple( 1, 2.0, 'a', 4, 5 );
   auto expected = std::make_tuple( 2, 3.0, 'b', 5, 6 );
@@ -135,10 +135,10 @@ TEST( omp_tuple_map, simple_use_case )
   ASSERT_EQ( expected, result );
 }
 
-TEST( omp_tie_map, simple_use_case )
+TEST( omp_tuple_map_ref, simple_use_case )
 {
   auto expected = std::make_tuple( 1, 2.0, 'a', 4, 5 );
-  auto result = omp::tie_map( []( auto& val ) -> auto& { return val; }, expected );
+  auto result = omp::tuple_map( []( auto& val ) -> auto& { return val; }, expected );
 
   std::get<0>( result ) -= 1;
   std::get<1>( result ) -= 1;
@@ -147,4 +147,18 @@ TEST( omp_tie_map, simple_use_case )
   std::get<4>( result ) -= 1;
 
   ASSERT_EQ( expected, result );
+
+  omp::tuple_map( [](auto, auto) { return 1; }, expected, result );
+}
+
+TEST( omp_tuple_map_pair, simple_use_case )
+{
+  auto expected = std::pair( 1, 2.0 );
+
+  auto result = omp::tuple_map( []( auto& val ) { return val + 5; }, expected );
+
+  omp::tuple_reduce( []( auto& val ) { return 1; }, 0, expected, result );
+
+  ASSERT_EQ( std::get<0>( result ), expected.first + 5 );
+  ASSERT_EQ( std::get<1>( result ), expected.second + 5 );
 }

@@ -4,12 +4,13 @@
 #include <tuple>
 
 
+
+
 namespace omp
 {
 
   namespace details
   {
-    // Thought: maybe change this type reduce compatible interface?
     template<typename T>
     struct collector_value
     {
@@ -50,37 +51,32 @@ namespace omp
 
     template<typename Tuple>
     constexpr bool support_get_one_( decltype( std::get<0>( std::declval<Tuple>() ), int() ) ) { return true; }
+    template<typename>
     constexpr bool support_get_one_( ... ) { return false; }
 
-    template<typename Tuple, typename... Tuples>
+    template<typename... Tuples>
     constexpr bool support_get_()
     {
-      return support_get_one_<Tuple>( 0 ) && ( support_get_one_<Tuples>( 0 ) && ... );
+      return ( ... && support_get_one_<Tuples>( 0 ) );
     }
 
-    template<typename Tuple, typename... Tuples>
+    template<typename First, typename... Rest> First first_type_();
+
+     template<typename> struct tuple_size : std::integral_constant<std::size_t, 0> {};
+
+    template<typename... Tuples>
     constexpr bool same_size_()
     {
-      return std::tuple_size_v<std::remove_reference_t<Tuple>> &&
-        ( ( std::tuple_size_v<std::remove_reference_t<Tuple>> == std::tuple_size_v<std::remove_reference_t<Tuples>> )
-          && ... );
+      using details::tuple_size;
+
+      using FirstTuple = std::remove_reference_t<decltype(first_type_<Tuples..., void>())>;
+      return ( ... && ( tuple_size<FirstTuple>::value == tuple_size<std::remove_reference_t<Tuples>>::value ) );
     }
 
     template<std::size_t Idx, typename Callable, typename... Tuples>
     decltype( auto ) map_one( Callable&& call, Tuples&&... tups )
     {
-      return std::forward<Callable>( call )( std::get<Idx>( std::forward<Tuples>( tups ) )... );
-    }
-
-    template<std::size_t Idx, typename Callable, typename Value, typename... Tuples>
-    decltype( auto ) reduce_one( Callable&& call, Value&& initial, Tuples&&... tups )
-    {
-      return std::forward<Callable>( call )( initial, std::get<Idx>( std::forward<Tuples>( tups )... ) );
-    }
-
-    template<std::size_t... Idxs, typename Callable, typename Value, typename... Tuples>
-    auto tuple_reduce_( std::index_sequence<Idxs...>, Callable&& call, Value&& initial, Tuples&&... tups )
-    {
+      return call( std::get<Idx>( std::forward<Tuples>( tups ) )... );
     }
 
     template<std::size_t... Idxs, typename Callable, typename... Tuples>
@@ -95,6 +91,20 @@ namespace omp
       {
         return std::make_tuple( map_one<Idxs>( std::forward<Callable>( call ), std::forward<Tuples>( tups )... )... );
       }
+    }
+
+    template<std::size_t Idx, typename Callable, typename Value, typename... Tuples>
+    void reduce_one( Callable&& call, Value& value, Tuples&&... tups )
+    {
+      value = call( std::move( value ), std::get<Idx>( std::forward<Tuples>( tups ) )... );
+    }
+
+    template<std::size_t... Idxs, typename Callable, typename Value, typename... Tuples>
+    auto tuple_reduce_( std::index_sequence<Idxs...>, Callable&& call, Value initial, Tuples&&... tups )
+    {
+      ( reduce_one<Idxs>( std::forward<Callable>( call ), initial, std::forward<Tuples>( tups )... ), ... );
+
+      return initial;
     }
   }
 
@@ -132,17 +142,23 @@ namespace omp
   }
 
   template<typename Callable, typename... Tuples,
-    std::enable_if_t<details::support_get_<Tuples...>() && details::same_size_<Tuples...>(), int> = 0>
+    std::enable_if_t<sizeof...(Tuples) && details::support_get_<Tuples...>() && details::same_size_<Tuples...>(),
+                     int> = 0>
   auto tuple_map( Callable&& call, Tuples&&... tups )
   {
-    using FirstTuple = std::remove_reference_t<std::tuple_element_t<0, std::tuple<Tuples...>>>;
+    using FirstTuple = std::remove_reference_t<decltype( details::first_type_<Tuples...>() )>;
     return details::tuple_map_( std::make_index_sequence<std::tuple_size_v<FirstTuple>>(),
                                 std::forward<Callable>( call ), std::forward<Tuples>( tups )... );
   }
-
-  template<typename Callable, typename Value, typename... Tuples>
+  
+  template<typename Callable, typename Value, typename... Tuples,
+    std::enable_if_t<sizeof...(Tuples) && details::support_get_<Tuples...>() && details::same_size_<Tuples...>(),
+                     int> = 0>
   auto tuple_reduce( Callable&& call, Value&& initial, Tuples&&... tups )
   {
-    return nullptr;
+    using FirstTuple = std::remove_reference_t<decltype( details::first_type_<Tuples...>() )>;
+    return details::tuple_reduce_( std::make_index_sequence<std::tuple_size_v<FirstTuple>>(),
+                                   std::forward<Callable>( call ), std::forward<Value>( initial ),
+                                   std::forward<Tuples>( tups )... );
   }
 }

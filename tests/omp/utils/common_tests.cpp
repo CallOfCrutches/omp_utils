@@ -2,6 +2,8 @@
 
 #include "gtest/gtest.h"
 
+#include <array>
+
 namespace
 {
   struct test_element
@@ -62,9 +64,9 @@ TEST( omp_min, user_types )
   ASSERT_EQ( omp::min( 1, 12, t, 1, 7, 9, 4, 0 ), -1 );
 
   // TODO: remove warning!
-  auto res = omp::min( 1, 'a', -5.0, -3.f, t, 1, 7, 'a', 4, 0 );
-
-  ASSERT_TRUE( typeid( res ).name() == typeid( test_element ).name() );
+  //auto res = omp::min( 1, 'a', -5.0, -3.f, t, 1, 7, 'a', 4, 0 );
+  //
+  //ASSERT_TRUE( typeid( res ).name() == typeid( test_element ).name() );
 }
 
 TEST( omp_max, primitive_types )
@@ -95,9 +97,9 @@ TEST( omp_max, user_types )
   ASSERT_EQ( omp::max( 1, 12, t, 1, 7, 9, 4, 0 ), t );
 
   // TODO: remove warning!
-  auto res = omp::max( 1, 'a', -5.0, -3.f, t, 1, 7, 'a', 4, 0 );
-
-  ASSERT_TRUE( typeid( res ).name() == typeid( test_element ).name() );
+  //auto res = omp::max( 1, 'a', -5.0, -3.f, t, 1, 7, 'a', 4, 0 );
+  //
+  //ASSERT_TRUE( typeid( res ).name() == typeid( test_element ).name() );
 }
 
 TEST( omp_sum, primitive_types )
@@ -120,9 +122,19 @@ TEST( omp_sum, user_types )
   ASSERT_EQ( omp::sum( 1, 12, t, 1, 7, 9, 4, 0 ), 1 + 12 + ( -1.0 ) + 1 + 7 + 9 + 4 + 0 );
 
   // TODO: remove warning!
-  auto res = omp::sum( 1, 'a', -5.0, -3.f, t, 1, 7, 'a', 4, 0 );
+  //auto res = omp::sum( 1, 'a', -5.0, -3.f, t, 1, 7, 'a', 4, 0 );
+  //
+  //ASSERT_TRUE( typeid( res ).name() == typeid( test_element ).name() );
+}
 
-  ASSERT_TRUE( typeid( res ).name() == typeid( test_element ).name() );
+TEST( omp_tuple_map_tuple, one_tuple )
+{
+  auto initial = std::make_tuple( 1, 2.0, 'a', 4, 5 );
+  auto expected = std::make_tuple( 2, 3.0, 'b', 5, 6 );
+
+  auto result = omp::tuple_map( []( const auto& val ) { return val + 1; }, initial );
+
+  ASSERT_EQ( expected, result );
 }
 
 TEST( omp_tuple_map_value, simple_use_case )
@@ -135,7 +147,7 @@ TEST( omp_tuple_map_value, simple_use_case )
   ASSERT_EQ( expected, result );
 }
 
-TEST( omp_tuple_map_ref, simple_use_case )
+TEST( omp_tuple_map_tuple, one_tuple_ref )
 {
   auto expected = std::make_tuple( 1, 2.0, 'a', 4, 5 );
   auto result = omp::tuple_map( []( auto& val ) -> auto& { return val; }, expected );
@@ -147,18 +159,171 @@ TEST( omp_tuple_map_ref, simple_use_case )
   std::get<4>( result ) -= 1;
 
   ASSERT_EQ( expected, result );
-
-  omp::tuple_map( [](auto, auto) { return 1; }, expected, result );
 }
 
-TEST( omp_tuple_map_pair, simple_use_case )
+TEST( omp_tuple_map_tuple, multi_tuple )
+{
+  auto expected1 = std::make_tuple( 1, 2.0, 'a', 4, 5 );
+  auto expected2 = std::make_tuple( 5, 4.0, 'z', 2, 1 );
+
+  auto result = omp::tuple_map( []( auto& val1, auto& val2 ) { return val1 + val2; }, expected1, expected2 );
+
+  ASSERT_EQ( std::get<0>( result ), std::get<0>( expected1 ) + std::get<0>( expected2 ) );
+  ASSERT_EQ( std::get<1>( result ), std::get<1>( expected1 ) + std::get<1>( expected2 ) );
+  ASSERT_EQ( std::get<2>( result ), std::get<2>( expected1 ) + std::get<2>( expected2 ) );
+  ASSERT_EQ( std::get<3>( result ), std::get<3>( expected1 ) + std::get<3>( expected2 ) );
+  ASSERT_EQ( std::get<4>( result ), std::get<4>( expected1 ) + std::get<4>( expected2 ) );
+}
+
+TEST( omp_tuple_map_tuple, multi_tuple_same )
+{
+  auto expected1 = std::make_tuple( 1, 2.0, 'a', 4, 5 );
+
+  auto result = omp::tuple_map( []( auto& val1, auto& val2 ) { return val1 + val2; }, expected1, expected1 );
+
+  ASSERT_EQ( std::get<0>( result ), std::get<0>( expected1 ) * 2 );
+  ASSERT_EQ( std::get<1>( result ), std::get<1>( expected1 ) * 2 );
+  ASSERT_EQ( std::get<2>( result ), std::get<2>( expected1 ) * 2 );
+  ASSERT_EQ( std::get<3>( result ), std::get<3>( expected1 ) * 2 );
+  ASSERT_EQ( std::get<4>( result ), std::get<4>( expected1 ) * 2 );
+}
+
+TEST( omp_tuple_map_tuple, multi_tuple_all_ref )
+{
+  auto expected1 = std::make_tuple( 1, 2.0, 'a', 4, 5 );
+  auto expected2 = std::make_tuple( 5, 4.0, 'z', 2, 1 );
+
+  auto result = omp::tuple_map( []( auto& val1, auto& val2 ) -> auto& { return val1 += val2; },
+                                expected1, expected2 );
+
+  ASSERT_EQ( &std::get<0>( result ), &std::get<0>( expected1 ) );
+  ASSERT_EQ( &std::get<1>( result ), &std::get<1>( expected1 ) );
+  ASSERT_EQ( &std::get<2>( result ), &std::get<2>( expected1 ) );
+  ASSERT_EQ( &std::get<3>( result ), &std::get<3>( expected1 ) );
+  ASSERT_EQ( &std::get<4>( result ), &std::get<4>( expected1 ) );
+}
+
+namespace
+{
+  struct DummyFunctor
+  {
+    int& operator()( int& i )
+    {
+      return i;
+    }
+
+    float operator()( float& f )
+    {
+      return f;
+    }
+
+    template<typename T>
+    T& operator()( T& d )
+    {
+      return d;
+    }
+  };
+}
+
+TEST( omp_tuple_map_tuple, multi_tuple_if_not_all_ref_than_value )
+{
+  auto expected1 = std::make_tuple( 1, 2.0f, 'a', 4, 5 );
+
+  auto result = omp::tuple_map( DummyFunctor(), expected1 );
+
+  ASSERT_NE( &std::get<0>( result ), &std::get<0>( expected1 ) );
+  ASSERT_NE( &std::get<1>( result ), &std::get<1>( expected1 ) );
+  ASSERT_NE( &std::get<2>( result ), &std::get<2>( expected1 ) );
+  ASSERT_NE( &std::get<3>( result ), &std::get<3>( expected1 ) );
+  ASSERT_NE( &std::get<4>( result ), &std::get<4>( expected1 ) );
+}
+
+TEST( omp_tuple_map_pair, one_pair )
 {
   auto expected = std::pair( 1, 2.0 );
 
   auto result = omp::tuple_map( []( auto& val ) { return val + 5; }, expected );
 
-  omp::tuple_reduce( []( auto& val ) { return 1; }, 0, expected, result );
-
   ASSERT_EQ( std::get<0>( result ), expected.first + 5 );
   ASSERT_EQ( std::get<1>( result ), expected.second + 5 );
+}
+
+TEST( omp_tuple_map_pair, one_pair_ref )
+{
+    auto expected = std::pair( 1, 2.0 );
+
+    auto result = omp::tuple_map( []( auto& val ) -> auto& { return val; }, expected );
+
+    std::get<0>( result ) = 0;
+    std::get<1>( result ) = 0;
+
+    ASSERT_EQ( 0, expected.first  );
+    ASSERT_EQ( 0, expected.second );
+}
+
+TEST( omp_tuple_map_pair, multi_pair )
+{
+    auto expected1 = std::pair( 1, 2.0 );
+    auto expected2 = std::pair( 3, 5.0 );
+
+    auto result = omp::tuple_map( []( auto& val1, auto& val2 ) { return val1 + val2; }, expected1, expected2 );
+
+    ASSERT_EQ( std::get<0>( result ), ( expected1.first  + expected2.first  ) );
+    ASSERT_EQ( std::get<1>( result ), ( expected1.second + expected2.second ) );
+}
+
+TEST( omp_tuple_map_array, one_array )
+{
+    auto expected = std::array{ 1, 2, 3, 4, 5 };
+
+    auto result = omp::tuple_map( []( const auto& val ) { return val + 1; }, expected );
+
+    ASSERT_EQ( std::get<0>( result ), expected[0] + 1 );
+    ASSERT_EQ( std::get<1>( result ), expected[1] + 1 );
+    ASSERT_EQ( std::get<2>( result ), expected[2] + 1 );
+    ASSERT_EQ( std::get<3>( result ), expected[3] + 1 );
+    ASSERT_EQ( std::get<4>( result ), expected[4] + 1 );
+}
+
+TEST( omp_tuple_map_array, one_array_ref )
+{
+    auto expected = std::array{ 1, 2, 3, 4, 5 };
+
+    auto result = omp::tuple_map( []( auto& val ) -> auto& { return val; }, expected );
+
+    ASSERT_EQ( &std::get<0>( result ), &expected[0] );
+    ASSERT_EQ( &std::get<1>( result ), &expected[1] );
+    ASSERT_EQ( &std::get<2>( result ), &expected[2] );
+    ASSERT_EQ( &std::get<3>( result ), &expected[3] );
+    ASSERT_EQ( &std::get<4>( result ), &expected[4] );
+}
+
+TEST( omp_tuple_map_array, multi_arrays )
+{
+    auto expected1 = std::array{ 1, 2, 3, 4, 5 };
+    auto expected2 = std::array{ 5, 4, 3, 2, 1 };
+
+    auto result = omp::tuple_map( []( auto& val1, auto& val2 ) -> auto& { return val1 += val2; },
+                                  expected1, expected2 );
+
+    std::for_each( std::begin( expected1 ), std::end( expected1 ), []( auto& val ) { val--; } );
+
+    ASSERT_EQ( std::get<0>( result ), expected1[0] );
+    ASSERT_EQ( std::get<1>( result ), expected1[1] );
+    ASSERT_EQ( std::get<2>( result ), expected1[2] );
+    ASSERT_EQ( std::get<3>( result ), expected1[3] );
+    ASSERT_EQ( std::get<4>( result ), expected1[4] );
+}
+
+TEST( omp_tuple_map_different_types, tuple_pair_array )
+{
+  auto expected1 = std::make_tuple( 1, 2.0f );
+  auto expected2 = std::pair( 1, 2.0f );
+  auto expected3 = std::array{ 1, 2 };
+
+  auto result = omp::tuple_map( []( auto& v1, auto& v2, auto& v3 ) { return v1 + v2 + v3; },
+                                expected1, expected2, expected3 );
+
+  ASSERT_EQ( std::get<0>( result ), 3 );
+  ASSERT_EQ( std::get<1>( result ), 6.f );
 }

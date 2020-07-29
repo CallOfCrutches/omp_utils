@@ -74,13 +74,13 @@ namespace omp
     }
 
     template<std::size_t Idx, typename Callable, typename... Tuples>
-    decltype( auto ) map_one( Callable&& call, Tuples&&... tups )
+    constexpr decltype( auto ) map_one( Callable&& call, Tuples&&... tups )
     {
       return call( std::get<Idx>( std::forward<Tuples>( tups ) )... );
     }
 
     template<std::size_t... Idxs, typename Callable, typename... Tuples>
-    auto tuple_map_( std::index_sequence<Idxs...>, Callable&& call, Tuples&&... tups )
+    constexpr auto tuple_map_( std::index_sequence<Idxs...>, Callable&& call, Tuples&&... tups )
     {
       if constexpr( ( std::is_reference_v<decltype( map_one<Idxs>(
         std::forward<Callable>( call ), std::forward<Tuples>( tups )... ) )> && ... ) )
@@ -94,13 +94,13 @@ namespace omp
     }
 
     template<std::size_t Idx, typename Callable, typename Value, typename... Tuples>
-    void reduce_one( Callable&& call, Value& value, Tuples&&... tups )
+    constexpr void reduce_one( Callable&& call, Value& value, Tuples&&... tups )
     {
       value = call( std::move( value ), std::get<Idx>( std::forward<Tuples>( tups ) )... );
     }
 
     template<std::size_t... Idxs, typename Callable, typename Value, typename... Tuples>
-    auto tuple_reduce_( std::index_sequence<Idxs...>, Callable&& call, Value initial, Tuples&&... tups )
+    constexpr auto tuple_reduce_( std::index_sequence<Idxs...>, Callable&& call, Value initial, Tuples&&... tups )
     {
       ( reduce_one<Idxs>( std::forward<Callable>( call ), initial, std::forward<Tuples>( tups )... ), ... );
 
@@ -144,7 +144,7 @@ namespace omp
   template<typename Callable, typename... Tuples,
     std::enable_if_t<sizeof...(Tuples) && details::support_get_<Tuples...>() && details::same_size_<Tuples...>(),
                      int> = 0>
-  auto tuple_map( Callable&& call, Tuples&&... tups )
+  constexpr auto tuple_map( Callable&& call, Tuples&&... tups )
   {
     using FirstTuple = std::remove_reference_t<decltype( details::first_type_<Tuples...>() )>;
     return details::tuple_map_( std::make_index_sequence<std::tuple_size_v<FirstTuple>>(),
@@ -154,7 +154,7 @@ namespace omp
   template<typename Callable, typename Value, typename... Tuples,
     std::enable_if_t<sizeof...(Tuples) && details::support_get_<Tuples...>() && details::same_size_<Tuples...>(),
                      int> = 0>
-  auto tuple_reduce( Callable&& call, Value&& initial, Tuples&&... tups )
+  constexpr auto tuple_reduce( Callable&& call, Value&& initial, Tuples&&... tups )
   {
     using FirstTuple = std::remove_reference_t<decltype( details::first_type_<Tuples...>() )>;
     return details::tuple_reduce_( std::make_index_sequence<std::tuple_size_v<FirstTuple>>(),

@@ -389,3 +389,27 @@ TEST( omp_tuple_reduce_different_types, tuple_array_pair )
 
   ASSERT_EQ( result, 720  );
 }
+
+namespace
+{
+  struct DummyFunctorAgain
+  {
+    constexpr int operator()( int a, int b ) { return a * b; }
+    constexpr int operator()( int a ) { return a * a; }
+  };
+
+  constexpr int dummy( int a, int b ) { return a * b; }
+  constexpr int dummy1( int a ) { return a * a; }
+}
+
+TEST( constexpr_context, omp_tuple_reduce )
+{
+  std::array<int, omp::tuple_reduce( DummyFunctorAgain(), 1, std::make_tuple( 1, 2, 3 ) ) > t;
+  ASSERT_EQ( t.max_size(), 6 );
+}
+
+TEST( constexpr_context, omp_tuple_map )
+{
+  std::array<int, std::get<2>( omp::tuple_map( DummyFunctorAgain(), std::make_tuple( 1, 2, 3 ) ) ) > t;
+  ASSERT_EQ( t.max_size(), 9 );
+}

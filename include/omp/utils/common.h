@@ -4,8 +4,6 @@
 #include <tuple>
 
 
-
-
 namespace omp
 {
 

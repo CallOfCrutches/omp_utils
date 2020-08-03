@@ -1,143 +1,233 @@
 #pragma once
 
+#include "common.h"
 #include <type_traits>
-#include <tuple>
-
 
 
 namespace omp
 {
   namespace details
   {
+    namespace functors
+    {
+      struct indirection
+      {
+        template<typename Iterator>
+        auto& operator()( Iterator& iter ) { return *iter; }
+      };
+      
+      struct increment
+      {
+        template<typename Iterator>
+        auto operator()( Iterator iter ) { return ++iter; }
+      };
+      
+      struct are_same
+      {
+        template<typename First, typename Second>
+        bool operator()( bool same, const First& first, const Second& second )
+        {
+          return same || ( first == second );
+        }
+      };
+      
+      struct begin
+      {
+        template<typename Container>
+        auto operator()( Container& container )
+        {
+          using std::begin;
+          return begin( container );
+        }
+      };
+      
+      struct end
+      {
+        template<typename Container>
+        auto operator()( Container& container )
+        {
+          using std::end;
+          return end( container );
+        }
+      };
+
+      struct cbegin
+      {
+        template<typename Container>
+        auto operator()( const Container& container )
+        {
+          using std::begin;
+          return begin( container );
+        }
+      };
+      
+      struct cend
+      {
+        template<typename Container>
+        auto operator()( const Container& container )
+        {
+          using std::end;
+          return end( container );
+        }
+      };
+    }
+
+    template<typename T>
+    struct make_const_if
+    {
+        using type = std::add_const_t<std::remove_reference_t<T>>;
+    };
+
+    template<typename T>
+    struct make_const_if<T&>
+    {
+        using type = T&;
+    };
+
+    template<typename T>
+    using make_const_if_t = typename make_const_if<T>::type;
 
     template<typename... Iterators>
-    struct zipped_const_iterator
+    class zip_iterator
     {
-      zipped_const_iterator( Iterators... iterators )
+    public:
+      using iterator_category = std::forward_iterator_tag;
+      using difference_type = std::ptrdiff_t;
+
+      using value_type = decltype( omp::tuple_map( functors::indirection(),
+                                   std::declval<std::tuple<Iterators...>&>() ) );
+
+      using reference = const value_type;
+
+      template<typename Tuple>
+      struct proxy
+      {
+        proxy( Tuple&& values ) noexcept( std::is_nothrow_move_constructible_v<Tuple>() )
+          : values( std::move( values ) )
+        {}
+
+        const auto operator->() const noexcept
+        {
+          return &values;
+        }
+
+        Tuple values;
+      };
+
+      using pointer = proxy<value_type>;
+
+      zip_iterator( Iterators... iterators )
         : iterators( std::forward<Iterators>( iterators )... )
-      { }
+      {}
 
-      pointer operator->() const noexcept
+      template<typename... InIterators>
+      zip_iterator( const std::tuple<InIterators...>& iterators )
+          : iterators( iterators )
+      {}
+
+      template<typename... InIterators>
+      zip_iterator( std::tuple<InIterators...>&& iterators )
+        : iterators( std::move( iterators ) )
+      {}
+
+      pointer operator->() const
       {
-        return &value;
+        return omp::tuple_map(functors::indirection(), iterators );
       }
 
-      const_reference operator*() const noexcept
+      reference operator*() const
       {
-        return value;
+        return omp::tuple_map(functors::indirection(), iterators );
       }
 
-      zipped_const_iterator& operator++() noexcept
+      zip_iterator& operator++()
       {
+        iterators = omp::tuple_map(functors::increment(), std::move( iterators ) );
+
         return *this;
       }
 
-      zipped_const_iterator operator++( int ) noexcept
+      zip_iterator operator++( int )
       {
-        auto tmp = *this;
+        auto temp = *this;
         ++( *this );
-        return tmp;
+
+        return temp;
       }
 
-      bool operator==( const zipped_const_iterator& rhs ) const noexcept
+      bool operator==( const zip_iterator& rhs ) const
       {
-        return true;
+        return omp::tuple_reduce( functors::are_same(), false, iterators, rhs.iterators );
       }
 
-      bool operator!=( const zipped_const_iterator& rhs ) const noexcept
+      bool operator!=( const zip_iterator& rhs ) const
       {
         return !( *this == rhs );
       }
 
-      bool operator<( const zipped_const_iterator& rhs ) const noexcept
-      {
-        return true;
-      }
-
-      bool operator>( const zipped_const_iterator& rhs ) const noexcept
-      {
-        return rhs < *this;
-      }
-
-      bool operator<=( const zipped_const_iterator& rhs ) const noexcept
-      {
-        return !( *this > rhs );
-      }
-
-      bool operator>=( const zipped_const_iterator& rhs ) const noexcept
-      {
-        return !( *this < rhs );
-      }
-
-    protected:
+    private:
       std::tuple<Iterators...> iterators;
-      std::tuple<Iterators::value_type...> values;
     };
 
     template<typename... Iterators>
-    struct zipped_iterator: public zipped_const_iterator<Iterators...>
-    {
+    zip_iterator( Iterators... iterators ) -> zip_iterator<Iterators...>;
 
+    template<typename... Iterators>
+    zip_iterator( const std::tuple<Iterators...>& iterators ) -> zip_iterator<std::remove_reference_t<Iterators>...>;
 
-    };
-
-    template<typename... Containers>
-    struct zipped_longest_const_iterator
-    {
-
-    };
-
-    template<typename... Containers>
-    struct zipped_longest_iterator: public zipped_longest_const_iterator<Containers...>
-    {
-
-    };
-
-
-    template<bool Longest, typename... Containers>
-    struct zipped
-    {
-
-      zipped( Containers... containers ):
-        containers( std::forward<Containers>( containers )... )
-      { }
-
-      auto begin() noexcept
-      {
-        return nullptr;
-        //return Longest == true ? 
-      }
-
-      auto end() noexcept
-      {
-        return nullptr;
-      }
-
-      auto begin() const noexcept
-      {
-        return nullptr;
-      }
-
-      auto end() const noexcept
-      {
-        return nullptr;
-      }
-
-    public:
-      std::tuple<Containers...> containers;
-    };
+    template<typename... Iterators>
+    zip_iterator( std::tuple<Iterators...>&& iterators ) -> zip_iterator<std::remove_reference_t<Iterators>...>;
   }
 
+  using details::zip_iterator;
 
   template<typename... Containers>
-  auto zip( Containers&&... containers )
+  struct zip
   {
-    return details::zipped<false, Containers...>( std::forward<Containers>( containers )... );
-  }
+    using iterator = zip_iterator<decltype( omp::tuple_map( details::functors::begin(),
+                                            std::declval<std::tuple<Containers...>&>() ) )>;
+
+    using const_iterator = zip_iterator<decltype( omp::tuple_map( details::functors::cbegin(),
+                                                  std::declval<std::tuple<Containers...>&>()))>;
+
+    zip( Containers... containers )
+      : containers( std::forward<Containers>( containers )... )
+    {}
+
+    iterator begin()
+    {
+      return omp::tuple_map( details::functors::begin(), containers );
+    }
+
+    iterator end()
+    {
+      return omp::tuple_map( details::functors::end(), containers );
+    }
+
+    const_iterator begin() const
+    {
+      return omp::tuple_map( details::functors::cbegin(), containers );
+    }
+
+    const_iterator end() const
+    {
+      return omp::tuple_map( details::functors::cend(), containers );
+    }
+
+    const_iterator cbegin() const
+    {
+      return begin();
+    }
+
+    const_iterator cend() const
+    {
+      return end();
+    }
+
+  private:
+    std::tuple<Containers...> containers;
+  };
 
   template<typename... Containers>
-  auto zip_longest( Containers&&... containers )
-  {
-    return details::zipped<true, Containers...>( std::forward<Containers>( containers )... );
-  }
+  zip( Containers&&... containers ) -> zip<details::make_const_if_t<Containers>...>;
 }

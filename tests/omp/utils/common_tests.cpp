@@ -397,9 +397,6 @@ namespace
     constexpr int operator()( int a, int b ) { return a * b; }
     constexpr int operator()( int a ) { return a * a; }
   };
-
-  constexpr int dummy( int a, int b ) { return a * b; }
-  constexpr int dummy1( int a ) { return a * a; }
 }
 
 TEST( constexpr_context, omp_tuple_reduce )

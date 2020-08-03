@@ -25,6 +25,7 @@ set(omp_utils_headers
     include/omp/utils/make_loaded_list.h
     include/omp/utils/range.h
     include/omp/utils/reversed.h
+    include/omp/utils/zip.h
 )
 
 add_library(OmpUtils::omp-utils ALIAS omp-utils)

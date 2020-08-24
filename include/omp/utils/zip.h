@@ -72,21 +72,6 @@ namespace omp
       };
     }
 
-    template<typename T>
-    struct make_const_if
-    {
-        using type = std::add_const_t<std::remove_reference_t<T>>;
-    };
-
-    template<typename T>
-    struct make_const_if<T&>
-    {
-        using type = T&;
-    };
-
-    template<typename T>
-    using make_const_if_t = typename make_const_if<T>::type;
-
     template<typename... Iterators>
     class zip_iterator
     {
@@ -184,11 +169,8 @@ namespace omp
   template<typename... Containers>
   struct zip
   {
-    using iterator = zip_iterator<decltype( omp::tuple_map( details::functors::begin(),
-                                            std::declval<std::tuple<Containers...>&>() ) )>;
-
-    using const_iterator = zip_iterator<decltype( omp::tuple_map( details::functors::cbegin(),
-                                                  std::declval<std::tuple<Containers...>&>()))>;
+    using iterator       = zip_iterator<decltype( details::functors::begin ()( std::declval<Containers&>() ) )...>;
+    using const_iterator = zip_iterator<decltype( details::functors::cbegin()( std::declval<Containers&>() ) )...>;
 
     zip( Containers... containers )
       : containers( std::forward<Containers>( containers )... )
@@ -229,5 +211,5 @@ namespace omp
   };
 
   template<typename... Containers>
-  zip( Containers&&... containers ) -> zip<details::make_const_if_t<Containers>...>;
+  zip( Containers&&... containers ) -> zip<Containers...>;
 }

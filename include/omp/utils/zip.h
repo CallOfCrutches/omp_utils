@@ -102,17 +102,17 @@ namespace omp
       using pointer = proxy<value_type>;
 
       zip_iterator( Iterators... iterators )
-        : iterators( std::forward<Iterators>( iterators )... )
+        : iterators_( std::forward<Iterators>( iterators )... )
       {}
 
       template<typename... InIterators>
       zip_iterator( const std::tuple<InIterators...>& iterators )
-          : iterators( iterators )
+          : iterators_( iterators )
       {}
 
       template<typename... InIterators>
       zip_iterator( std::tuple<InIterators...>&& iterators )
-        : iterators( std::move( iterators ) )
+        : iterators_( std::move( iterators ) )
       {}
 
       pointer operator->() const
@@ -122,12 +122,12 @@ namespace omp
 
       reference operator*() const
       {
-        return omp::tuple_map(functors::indirection(), iterators );
+        return omp::tuple_map(functors::indirection(), iterators_ );
       }
 
       zip_iterator& operator++()
       {
-        iterators = omp::tuple_map(functors::increment(), std::move( iterators ) );
+        iterators_ = omp::tuple_map(functors::increment(), std::move( iterators_ ) );
 
         return *this;
       }
@@ -142,7 +142,7 @@ namespace omp
 
       bool operator==( const zip_iterator& rhs ) const
       {
-        return omp::tuple_reduce( functors::are_same(), false, iterators, rhs.iterators );
+        return omp::tuple_reduce( functors::are_same(), false, iterators_, rhs.iterators_ );
       }
 
       bool operator!=( const zip_iterator& rhs ) const
@@ -150,8 +150,18 @@ namespace omp
         return !( *this == rhs );
       }
 
+      auto& iterators()
+      {
+          return iterators_;
+      }
+
+      const auto& iterators() const
+      {
+          return iterators_;
+      }
+
     private:
-      std::tuple<Iterators...> iterators;
+      std::tuple<Iterators...> iterators_;
     };
 
     template<typename... Iterators>
@@ -173,27 +183,27 @@ namespace omp
     using const_iterator = zip_iterator<decltype( details::functors::cbegin()( std::declval<Containers&>() ) )...>;
 
     zip( Containers... containers )
-      : containers( std::forward<Containers>( containers )... )
+      : containers_( std::forward<Containers>( containers )... )
     {}
 
     iterator begin()
     {
-      return omp::tuple_map( details::functors::begin(), containers );
+      return omp::tuple_map( details::functors::begin(), containers_);
     }
 
     iterator end()
     {
-      return omp::tuple_map( details::functors::end(), containers );
+      return omp::tuple_map( details::functors::end(), containers_);
     }
 
     const_iterator begin() const
     {
-      return omp::tuple_map( details::functors::cbegin(), containers );
+      return omp::tuple_map( details::functors::cbegin(), containers_);
     }
 
     const_iterator end() const
     {
-      return omp::tuple_map( details::functors::cend(), containers );
+      return omp::tuple_map( details::functors::cend(), containers_);
     }
 
     const_iterator cbegin() const
@@ -206,8 +216,18 @@ namespace omp
       return end();
     }
 
+    auto& containers()
+    {
+        return containers_;
+    }
+
+    const auto& containers() const
+    {
+        return containers_;
+    }
+
   private:
-    std::tuple<Containers...> containers;
+    std::tuple<Containers...> containers_;
   };
 
   template<typename... Containers>

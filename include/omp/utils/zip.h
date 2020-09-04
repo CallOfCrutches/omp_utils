@@ -117,7 +117,7 @@ namespace omp
 
       pointer operator->() const
       {
-        return omp::tuple_map(functors::indirection(), iterators );
+        return omp::tuple_map(functors::indirection(), iterators_ );
       }
 
       reference operator*() const

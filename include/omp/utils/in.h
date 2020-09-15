@@ -11,19 +11,18 @@ namespace omp
     bool in_( const ValueType& value, const ContainerType& container,
               decltype( std::declval<ContainerType>().find( std::declval<typename ContainerType::key_type>() ) )* )
     {
-      using std::cbegin;
-      using std::cend;
+      using std::end;
 
-      return container.find( value ) != cend( container );
+      return container.find( value ) != end( container );
     }
 
     template<typename ValueType, typename ContainerType>
     bool in_( const ValueType& value, const ContainerType& container, ... )
     {
-      using std::cbegin;
-      using std::cend;
+      using std::begin;
+      using std::end;
 
-      return std::find( cbegin( container ), cend( container ), value ) != cend( container );
+      return std::find( begin( container ), end( container ), value ) != end( container );
     }
   }
 

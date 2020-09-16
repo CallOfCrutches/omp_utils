@@ -10,13 +10,12 @@ namespace omp
   namespace details
   {
 
-    template<typename Int>
+    template<typename Integral>
     struct range_iterator
     {
-
-      using value_type = Int;
-
       using iterator_category = std::forward_iterator_tag;
+
+      using value_type = Integral;
 
       using reference = const value_type&;
       using pointer = const value_type*;
@@ -27,7 +26,6 @@ namespace omp
         : step( step )
         , value( value )
       {}
-
 
       reference operator*() const noexcept
       {
@@ -49,7 +47,6 @@ namespace omp
       range_iterator operator++( int ) noexcept
       {
         auto temp = *this;
-
         ++( *this );
 
         return temp;
@@ -91,81 +88,80 @@ namespace omp
     };
 
 
-    template<typename Int>
-    struct range_container_adapter
+    template<typename Integral>
+    struct range
     {
-      using value_type = Int;
+      using value_type = Integral;
 
-      using iterator = range_iterator<Int>;
-      using const_iterator = iterator;
+      using iterator       = range_iterator<value_type>;
+      using const_iterator = range_iterator<value_type>;
 
-      range_container_adapter( value_type start, value_type stop, value_type step ) noexcept
-        : start( start )
-        , stop( stop )
-        , step( step )
-      {
-        
-      }
+      range( value_type start, value_type stop, value_type step ) noexcept
+        : start_( start )
+        , stop_( stop )
+        , step_( step )
+      {}
 
       const_iterator begin() const noexcept
       {
-        return const_iterator( start, step );
+        return const_iterator( start_, step_ );
       }
 
       const_iterator end() const noexcept
       {
-        return const_iterator( stop, step );
+        return const_iterator( stop_, step_ );
       }
 
       bool empty() const noexcept
       {
-        return start == stop;
+        return start_ == stop_;
       }
 
       std::size_t size() const noexcept
       {
-        return static_cast<std::size_t>( ( stop - start ) / step );
+        return static_cast<std::size_t>( ( stop_ - start_ ) / step_ );
       }
 
-      const value_type start;
-      const value_type stop;
-      const value_type step;
+    private:
+      const value_type start_;
+      const value_type stop_;
+      const value_type step_;
     };
 
-    inline std::int64_t align_stop( std::int64_t start, 
-                                    std::int64_t stop, 
-                                    std::int64_t step ) noexcept
+    template<typename Integral>
+    inline Integral align_stop( Integral start, Integral stop, Integral step ) noexcept
     {
       if( start == stop )
         return start;
 
       if( start > stop && step > 0 )
         return start;
-      
+
       if( start < stop && step < 0 )
         return start;
 
       auto mod = ( stop - start ) % step;
 
-      if( mod == 0 )
-        return stop;
-
-      return stop + step - mod;
+      return mod != 0 ? stop + step - mod : stop;
     }
   }
 
-  inline auto range( std::int64_t start, std::int64_t stop, std::int64_t step = 1 )
+  template<typename Start, typename Stop, typename Step = std::common_type_t<Start, Stop>>
+  inline auto range( Start start, Stop stop, Step step = Step{1} )
   {
-    if( step == 0 )
-      throw std::logic_error( "step is zero" );
+    using Integral = std::common_type_t<Start, Stop, Step>;
 
-    stop = details::align_stop( start, stop, step );
+    static_assert( std::is_integral_v<Integral>, "Type is not integral" );
 
-    return details::range_container_adapter( start, stop, step );
+    if( !step ) throw std::logic_error( "step is zero" );
+
+    stop = details::align_stop<Integral>( start, stop, step );
+    return details::range<Integral>( start, stop, step );
   }
 
-  inline auto range( std::int64_t stop )
+  template<typename Integral>
+  inline auto range( Integral stop )
   {
-    return range( 0, stop );
+    return range( Integral{0}, stop );
   }
 }

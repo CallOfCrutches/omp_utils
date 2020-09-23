@@ -210,3 +210,71 @@ TEST( omp_range, special_case_with_step_decrease_both )
 
   ASSERT_EQ( result, expecting );
 }
+
+TEST( omp_range, overload_one_different_value_types )
+{
+    auto r_is_char = std::is_same_v<char,
+        typename decltype( omp::range( static_cast<char>( 1 ) ) )::value_type>;
+    auto r_is_int = std::is_same_v<int,
+        typename decltype( omp::range( static_cast<int>( 1 ) ) )::value_type>;
+    auto r_is_uint = std::is_same_v<unsigned int,
+        typename decltype( omp::range( static_cast<unsigned int>( 1 ) ) )::value_type>;
+    auto r_is_size_t = std::is_same_v<std::size_t,
+        typename decltype( omp::range( static_cast<std::size_t>( 1 ) ) )::value_type>;
+    auto r_is_ptrdiff_t = std::is_same_v<std::ptrdiff_t,
+        typename decltype( omp::range( static_cast<std::ptrdiff_t>( 1 ) ) )::value_type>;
+
+    ASSERT_TRUE( r_is_char && r_is_int && r_is_uint && r_is_size_t && r_is_ptrdiff_t );
+
+    auto r_is_c_int = std::is_same_v<int,
+        typename decltype( omp::range( static_cast<const int>( 1 ) ) )::value_type>;
+
+    ASSERT_TRUE( r_is_c_int );
+}
+
+TEST( omp_range, overload_two_different_value_types )
+{
+    auto r_is_int_1 = std::is_same_v<int,
+        typename decltype( omp::range( static_cast<int>( 1 ), static_cast<int>( 1 ) ) )::value_type>;
+    auto r_is_int_2 = std::is_same_v<int,
+        typename decltype( omp::range( static_cast<char>( 1 ), static_cast<int>( 1 ) ) )::value_type>;
+    auto r_is_size_t_1 = std::is_same_v<std::size_t,
+        typename decltype( omp::range( static_cast<int>( 1 ), static_cast<std::size_t>( 1 ) ) )::value_type>;
+    auto r_is_size_t_2 = std::is_same_v<std::size_t,
+        typename decltype( omp::range( static_cast<std::ptrdiff_t>( 1 ),
+            static_cast<std::size_t>( 1 ) ) )::value_type>;
+    auto r_is_ptrdiff_t = std::is_same_v<std::ptrdiff_t,
+        typename decltype(omp::range(static_cast<std::ptrdiff_t>(1),
+            static_cast<int>(1)))::value_type>;
+
+    ASSERT_TRUE( r_is_int_1 && r_is_int_2 && r_is_size_t_1 && r_is_size_t_2 && r_is_ptrdiff_t );
+
+    auto r_is_c_int = std::is_same_v<int,
+        typename decltype( omp::range( static_cast<const int>( 1 ), static_cast<char>( 1 ) ) )::value_type>;
+
+    ASSERT_TRUE( r_is_c_int );
+}
+
+TEST( omp_range, overload_three_different_value_types )
+{
+    auto r_is_int = std::is_same_v<int,
+        typename decltype( omp::range( static_cast<char>( 1 ),
+            static_cast<char>( 1 ), static_cast<int>( 12 ) ) )::value_type>;
+    auto r_is_size_t = std::is_same_v<std::size_t,
+        typename decltype( omp::range( static_cast<std::size_t>( 1 ),
+            static_cast<std::size_t>( 1 ), static_cast<std::ptrdiff_t>( -1 ) ) )::value_type>;
+    auto r_is_ptrdiff_t = std::is_same_v<std::ptrdiff_t,
+        typename decltype( omp::range(static_cast<int>( 1 ),
+            static_cast<char>( 1 ), static_cast<std::ptrdiff_t>( -1 ) ) )::value_type>;
+    auto r_is_uint = std::is_same_v<unsigned int,
+        typename decltype( omp::range( static_cast<int>( 1 ),
+            static_cast<int>( 1 ), static_cast<unsigned int>( 1 ) ) )::value_type>;
+
+    ASSERT_TRUE( r_is_int && r_is_size_t && r_is_ptrdiff_t && r_is_uint );
+
+    auto r_is_c_int = std::is_same_v<int,
+        typename decltype( omp::range( static_cast<char>( 1 ),
+            static_cast<char>( 1 ), static_cast<const int>( 1 ) ) )::value_type>;
+
+    ASSERT_TRUE( r_is_c_int );
+}

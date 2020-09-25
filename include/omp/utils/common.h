@@ -42,15 +42,9 @@ namespace omp
     template<std::size_t... Idxs, typename Callable, typename... Tuples>
     constexpr auto tuple_map_( std::index_sequence<Idxs...>, Callable&& call, Tuples&&... tups )
     {
-      if constexpr( ( std::is_reference_v<decltype( map_one<Idxs>(
-        std::forward<Callable>( call ), std::forward<Tuples>( tups )... ) )> && ... ) )
-      {
-        return std::tie( map_one<Idxs>( std::forward<Callable>( call ), std::forward<Tuples>( tups )... )... );
-      }
-      else
-      {
-        return std::make_tuple( map_one<Idxs>( std::forward<Callable>( call ), std::forward<Tuples>( tups )... )... );
-      }
+        return std::tuple<decltype( map_one<Idxs>(
+            std::forward<Callable>( call ), std::forward<Tuples>( tups )... ) )...>(
+                map_one<Idxs>( std::forward<Callable>( call ), std::forward<Tuples>( tups )... )... );
     }
 
     template<std::size_t Idx, typename Callable, typename Value, typename... Tuples>

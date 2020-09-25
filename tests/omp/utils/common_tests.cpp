@@ -2,7 +2,9 @@
 
 #include "gtest/gtest.h"
 
+#include <type_traits>
 #include <array>
+
 
 
 TEST( omp_tuple_map_tuple, one_tuple )
@@ -61,8 +63,8 @@ TEST( omp_tuple_map_tuple, multi_tuple_all_ref )
   auto expected1 = std::make_tuple( 1, 2.0, 'a', 4, 5 );
   auto expected2 = std::make_tuple( 5, 4.0, 'z', 2, 1 );
 
-  auto result = omp::tuple_map( []( auto& val1, auto& val2 ) -> auto& { return val1 += val2; },
-                                expected1, expected2 );
+  auto result = omp::tuple_map( []( auto& val1, auto&& val2 ) -> auto& { return val1 += val2; },
+                                expected1, std::move( expected2 ) );
 
   ASSERT_EQ( &std::get<0>( result ), &std::get<0>( expected1 ) );
   ASSERT_EQ( &std::get<1>( result ), &std::get<1>( expected1 ) );
@@ -75,9 +77,9 @@ namespace
 {
   struct DummyFunctor
   {
-    int& operator()( int& i )
+    char&& operator()( char& c )
     {
-      return i;
+      return std::move( c );
     }
 
     float operator()( float& f )
@@ -93,17 +95,50 @@ namespace
   };
 }
 
-TEST( omp_tuple_map_tuple, multi_tuple_if_not_all_ref_than_value )
+TEST( omp_tuple_map_tuple, type_depends_on_functor_res )
 {
   auto expected1 = std::make_tuple( 1, 2.0f, 'a', 4, 5 );
 
   auto result = omp::tuple_map( DummyFunctor(), expected1 );
 
-  ASSERT_NE( &std::get<0>( result ), &std::get<0>( expected1 ) );
-  ASSERT_NE( &std::get<1>( result ), &std::get<1>( expected1 ) );
-  ASSERT_NE( &std::get<2>( result ), &std::get<2>( expected1 ) );
-  ASSERT_NE( &std::get<3>( result ), &std::get<3>( expected1 ) );
-  ASSERT_NE( &std::get<4>( result ), &std::get<4>( expected1 ) );
+  auto t_frst = std::is_same_v<int&  , std::tuple_element_t<0, decltype( result )>>;
+  auto t_scnd = std::is_same_v<float , std::tuple_element_t<1, decltype( result )>>;
+  auto t_thrd = std::is_same_v<char&&, std::tuple_element_t<2, decltype( result )>>;
+  auto t_frth = std::is_same_v<int&  , std::tuple_element_t<3, decltype( result )>>;
+  auto t_ffth = std::is_same_v<int&  , std::tuple_element_t<4, decltype( result )>>;
+
+  ASSERT_TRUE( t_frst && t_scnd && t_thrd && t_frth && t_ffth );
+}
+
+TEST( omp_tuple_map_tuple, type_depends_on_lambda_rvalue__ref_res )
+{
+  auto expected1 = std::make_tuple( 1, 2.0f, 'a', 4, 5 );
+  
+  auto result = omp::tuple_map( []( auto&& v ) -> decltype( auto ) { return std::forward<decltype( v )>( v ); },
+      std::move( expected1 ) );
+
+  auto t_frst = std::is_same_v<int&&  , std::tuple_element_t<0, decltype( result )>>;
+  auto t_scnd = std::is_same_v<float&&, std::tuple_element_t<1, decltype( result )>>;
+  auto t_thrd = std::is_same_v<char&& , std::tuple_element_t<2, decltype( result )>>;
+  auto t_frth = std::is_same_v<int&&  , std::tuple_element_t<3, decltype( result )>>;
+  auto t_ffth = std::is_same_v<int&&  , std::tuple_element_t<4, decltype( result )>>;
+
+  ASSERT_TRUE( t_frst && t_scnd && t_thrd && t_frth && t_ffth );
+}
+
+TEST( omp_tuple_map_tuple, type_depends_on_lambda_rvalue_res )
+{
+  auto expected1 = std::make_tuple( 1, 2.0f, 'a', 4, 5 );
+  
+  auto result = omp::tuple_map( []( auto&& v ) -> auto { return v; }, std::move( expected1 ) );
+
+  auto t_frst = std::is_same_v<int  , std::tuple_element_t<0, decltype( result )>>;
+  auto t_scnd = std::is_same_v<float, std::tuple_element_t<1, decltype( result )>>;
+  auto t_thrd = std::is_same_v<char , std::tuple_element_t<2, decltype( result )>>;
+  auto t_frth = std::is_same_v<int  , std::tuple_element_t<3, decltype( result )>>;
+  auto t_ffth = std::is_same_v<int  , std::tuple_element_t<4, decltype( result )>>;
+
+  ASSERT_TRUE( t_frst && t_scnd && t_thrd && t_frth && t_ffth );
 }
 
 TEST( omp_tuple_map_pair, one_pair )

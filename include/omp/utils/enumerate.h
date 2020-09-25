@@ -200,6 +200,8 @@ namespace omp
     using iterator       = enumerate_iterator<container_iterator>;
     using const_iterator = enumerate_iterator<container_const_iterator>;
 
+    using value_type = typename iterator::value_type;
+
     template<typename container_type = container_type>
     enumerator( container_type&& container, std::ptrdiff_t start )
       : base_type( std::forward<container_type>( container ) )

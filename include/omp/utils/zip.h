@@ -8,7 +8,7 @@ namespace omp
 {
   namespace details
   {
-    namespace functors
+    namespace functor
     {
       struct indirection
       {
@@ -79,7 +79,7 @@ namespace omp
       using iterator_category = std::forward_iterator_tag;
       using difference_type = std::ptrdiff_t;
 
-      using value_type = decltype( omp::tuple_map( functors::indirection(),
+      using value_type = decltype( omp::tuple_map( functor::indirection(),
                                    std::declval<std::tuple<Iterators...>&>() ) );
 
       using reference = const value_type;
@@ -117,17 +117,17 @@ namespace omp
 
       pointer operator->() const
       {
-        return omp::tuple_map(functors::indirection(), iterators_ );
+        return omp::tuple_map( functor::indirection(), iterators_ );
       }
 
       reference operator*() const
       {
-        return omp::tuple_map(functors::indirection(), iterators_ );
+        return omp::tuple_map( functor::indirection(), iterators_ );
       }
 
       zip_iterator& operator++()
       {
-        iterators_ = omp::tuple_map(functors::increment(), std::move( iterators_ ) );
+        iterators_ = omp::tuple_map( functor::increment(), std::move( iterators_ ) );
 
         return *this;
       }
@@ -142,7 +142,7 @@ namespace omp
 
       bool operator==( const zip_iterator& rhs ) const
       {
-        return omp::tuple_reduce( functors::are_same(), false, iterators_, rhs.iterators_ );
+        return omp::tuple_reduce( functor::are_same(), false, iterators_, rhs.iterators_ );
       }
 
       bool operator!=( const zip_iterator& rhs ) const
@@ -179,8 +179,10 @@ namespace omp
   template<typename... Containers>
   struct zip
   {
-    using iterator       = zip_iterator<decltype( details::functors::begin ()( std::declval<Containers&>() ) )...>;
-    using const_iterator = zip_iterator<decltype( details::functors::cbegin()( std::declval<Containers&>() ) )...>;
+    using iterator       = zip_iterator<decltype( details::functor::begin ()( std::declval<Containers&>() ) )...>;
+    using const_iterator = zip_iterator<decltype( details::functor::cbegin()( std::declval<Containers&>() ) )...>;
+
+    using value_type = typename iterator::value_type;
 
     zip( Containers... containers )
       : containers_( std::forward<Containers>( containers )... )
@@ -188,22 +190,22 @@ namespace omp
 
     iterator begin()
     {
-      return omp::tuple_map( details::functors::begin(), containers_);
+      return omp::tuple_map( details::functor::begin(), containers_);
     }
 
     iterator end()
     {
-      return omp::tuple_map( details::functors::end(), containers_);
+      return omp::tuple_map( details::functor::end(), containers_);
     }
 
     const_iterator begin() const
     {
-      return omp::tuple_map( details::functors::cbegin(), containers_);
+      return omp::tuple_map( details::functor::cbegin(), containers_);
     }
 
     const_iterator end() const
     {
-      return omp::tuple_map( details::functors::cend(), containers_);
+      return omp::tuple_map( details::functor::cend(), containers_);
     }
 
     const_iterator cbegin() const

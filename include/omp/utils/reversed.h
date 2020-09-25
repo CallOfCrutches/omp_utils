@@ -38,6 +38,8 @@ namespace omp
       using iterator       = typename decayed_container::reverse_iterator;
       using const_iterator = typename decayed_container::const_reverse_iterator;
 
+      using value_type = typename decayed_container::value_type;
+
       template<typename IncomingContainer = Container>
       reversed_container_adapter( IncomingContainer&& container )
         : container( std::forward<Container>( container ) )

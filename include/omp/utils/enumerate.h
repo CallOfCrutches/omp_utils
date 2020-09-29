@@ -32,11 +32,16 @@ namespace omp
     template<typename ContainerType>
     struct enumerate_value_
     {
-      using container_type = const ContainerType;
+      using container_type = std::remove_cv_t<ContainerType>;
 
-      enumerate_value_( std::remove_cv_t<container_type>&& container )
+      enumerate_value_( ContainerType&& container )
         : container_( std::move( container ) )
       { }
+
+      auto& container() noexcept
+      {
+        return container_;
+      }
 
       const auto& container() const noexcept
       {
@@ -97,25 +102,28 @@ namespace omp
   template<typename Iterator>
   struct enumerate_iterator
   {
-    using iterator_category = std::forward_iterator_tag;
-
     using wrapped_iterator = Iterator;
+
+    using iterator_category = std::forward_iterator_tag;
 
     using value_type = std::pair<const std::ptrdiff_t, typename std::iterator_traits<wrapped_iterator>::reference>;
 
+    using difference_type = std::ptrdiff_t;
+
     struct pointer
     {
-        pointer( value_type&& value ) noexcept( std::is_nothrow_move_constructible_v<value_type> )
-            : value_( std::move( value ) )
-        { }
+      pointer( value_type&& value ) noexcept
+        : value_( std::move( value ) )
+      { }
 
-        value_type* operator->() noexcept
-        {
-            return &value_;
-        }
+      value_type* operator->() noexcept
+      {
+        return &value_;
+      }
 
-        value_type value_;
+      value_type value_;
     };
+
     using reference = const value_type;
 
     enumerate_iterator( wrapped_iterator&& iter, std::ptrdiff_t value )
@@ -150,29 +158,9 @@ namespace omp
       return tmp;
     }
 
-    bool operator<( const enumerate_iterator& rhs ) const noexcept
-    {
-      return iterator_ < rhs.iterator_;
-    }
-
     bool operator==( const enumerate_iterator& rhs ) const noexcept
     {
         return iterator_ == rhs.iterator_;
-    }
-
-    bool operator>( const enumerate_iterator& rhs ) const noexcept
-    {
-      return rhs < *this;
-    }
-
-    bool operator<=( const enumerate_iterator& rhs ) const noexcept
-    {
-      return !( *this > rhs );
-    }
-
-    bool operator>=( const enumerate_iterator& rhs ) const noexcept
-    {
-      return !( *this < rhs );
     }
 
     bool operator!=( const enumerate_iterator& rhs ) const noexcept
@@ -201,6 +189,8 @@ namespace omp
     using const_iterator = enumerate_iterator<container_const_iterator>;
 
     using value_type = typename iterator::value_type;
+
+    using difference_type = typename iterator::difference_type;
 
     template<typename container_type = container_type>
     enumerator( container_type&& container, std::ptrdiff_t start )

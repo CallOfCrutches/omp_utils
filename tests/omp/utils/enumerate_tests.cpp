@@ -5,40 +5,36 @@
 #include <vector>
 
 
-TEST( omp_enumerate, iterator_case )
+TEST( omp_enumerate, iterator_types )
 {
-  std::vector expecting = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+    std::vector v = { 1, 2, 3, 4, 5 };
 
-  auto enumerated = omp::enumerate( expecting );
+    auto e_is_iterator_1 = std::is_same_v<typename std::vector<int>::iterator,
+        typename decltype( omp::enumerate( v ) )::container_iterator>;
 
-  ASSERT_EQ( ( ++std::cbegin( enumerated ) )->second, 1 );
+    auto e_is_citerator_1 = std::is_same_v<typename std::vector<int>::const_iterator,
+        typename decltype( omp::enumerate( std::as_const( v ) ) )::container_iterator>;
 
-  {
-    auto it = ++std::cbegin( enumerated );
-    ++it;
-    ++it;
+    auto e_is_iterator_2 = std::is_same_v<typename std::vector<int>::iterator,
+        typename decltype( omp::enumerate( std::move( v ) ) )::container_iterator>;
 
-    ASSERT_EQ( it->second, 3 );
-  }
+    auto e_is_iterator_3 = std::is_same_v<typename std::vector<int>::iterator,
+       typename decltype( omp::enumerate( std::move( std::as_const( v ) ) ) )::container_iterator>;
+
+    ASSERT_TRUE( e_is_iterator_1 && e_is_citerator_1 && e_is_iterator_2 && e_is_iterator_3 );
 }
 
-TEST( omp_enumerate, iterator_comparisons_case )
+TEST( omp_enumerate, iterator_for_loop_type )
 {
   std::vector expecting = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
-  auto enumerated = omp::enumerate( expecting );
+  auto enumeration = omp::enumerate( expecting );
 
-  ASSERT_NE( std::cbegin( enumerated ), std::cend( enumerated )   );
-  ASSERT_LE( std::cbegin( enumerated ), std::cend( enumerated )   );
-  ASSERT_GE( std::cend( enumerated )  , std::cbegin( enumerated ) );
-  ASSERT_EQ( ( ++std::cbegin( enumerated ) ), ( ++std::cbegin( enumerated ) ) );
+  for( auto it = std::begin( enumeration ); it != std::end( enumeration ); ++it )
+    it->second += 1;
 
-  {
-    auto it2 = ++std::cbegin( enumerated );
-    auto it1 = it2++;
-
-    ASSERT_LE( it1, it2 );
-  }
+  for( auto it = std::begin( enumeration ); it != std::end( enumeration ); ++it )
+    ASSERT_EQ( it->first + 1, it->second );
 }
 
 TEST( omp_enumerate, empty_case )
@@ -62,31 +58,15 @@ TEST( omp_enumerate, values_from_value_case )
 {
   std::vector expecting = { 5, 6, 7, 8, 9, 10, 11, 12, 13, 14 };
 
-  for( auto&[idx, value] : omp::enumerate( expecting, 5 ) )
+  for( auto& [idx, value] : omp::enumerate( expecting, 5 ) )
     ASSERT_EQ( idx, value );
-}
-
-TEST( omp_enumerate, increasing_value )
-{
-  std::vector initial = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-
-  for( auto& [idx, value] : omp::enumerate( initial, 5 ) )
-    value += idx;
-
-  std::vector expecting = { 5, 6, 7, 8, 9, 10, 11, 12, 13, 14 };
-
-  auto iIt = std::cbegin( initial );
-  auto eIt = std::cbegin( expecting );
-
-  ASSERT_TRUE( std::equal( std::cbegin( initial ), std::cend( initial ),
-                           std::cbegin( expecting ), std::cend( expecting ) ) );
 }
 
 TEST( omp_enumerate, moving_case )
 {
   std::vector expecting = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
-  for( auto&[idx, value] : omp::enumerate( std::move( expecting ) ) )
+  for( auto& [idx, value] : omp::enumerate( std::move( expecting ) ) )
     ASSERT_EQ( idx, value );
 }
 
@@ -94,7 +74,7 @@ TEST( omp_enumerate, array_case )
 {
   int expecting[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
-  for( auto&[idx, value] : omp::enumerate( expecting ) )
+  for( auto& [idx, value] : omp::enumerate( expecting ) )
     ASSERT_EQ( idx, value );
 }
 
@@ -102,19 +82,6 @@ TEST( omp_enumerate, pointers_case )
 {
   int expecting[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
-  for( auto&[idx, value] : omp::enumerate( std::cbegin( expecting ), std::cend( expecting) ) )
+  for( auto& [idx, value] : omp::enumerate( std::cbegin( expecting ), std::cend( expecting ) ) )
     ASSERT_EQ( idx, value );
-}
-
-TEST( omp_enumerate, iterator_for_loop_type )
-{
-  std::vector expecting = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
-
-  auto enumeration = omp::enumerate( expecting );
-
-  for( auto it = std::begin( enumeration ); it != std::end( enumeration ); ++it )
-    it->second += 1;
-
-  for( auto it = std::begin( enumeration ); it != std::end( enumeration ); ++it )
-    ASSERT_EQ( it->first + 1, it->second );
 }

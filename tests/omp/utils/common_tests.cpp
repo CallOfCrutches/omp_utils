@@ -3,8 +3,8 @@
 #include "gtest/gtest.h"
 
 #include <type_traits>
+#include <algorithm>
 #include <array>
-
 
 
 TEST( omp_tuple_map_tuple, one_tuple )

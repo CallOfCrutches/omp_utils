@@ -2,6 +2,7 @@
 set(tests_sources
     omp/utils/common_tests.cpp
     omp/utils/enumerate_tests.cpp
+    omp/utils/head_tests.cpp
     omp/utils/in_tests.cpp
     omp/utils/make_loaded_list_tests.cpp
     omp/utils/range_tests.cpp

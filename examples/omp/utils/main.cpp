@@ -2,6 +2,7 @@
 
 extern void common_examples();
 extern void enumerate_examples();
+extern void head_examples();
 extern void in_examples();
 extern void make_loaded_list_examples();
 extern void range_examples();
@@ -11,6 +12,7 @@ int main()
 {
   common_examples();
   enumerate_examples();
+  head_examples();
   in_examples();
   make_loaded_list_examples();
   range_examples();

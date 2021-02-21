@@ -21,6 +21,7 @@ target_include_directories(omp-utils INTERFACE
 set(omp_utils_headers
     include/omp/utils/common.h
     include/omp/utils/enumerate.h
+    include/omp/utils/head.h
     include/omp/utils/in.h
     include/omp/utils/make_loaded_list.h
     include/omp/utils/range.h
@@ -32,6 +33,7 @@ add_library(OmpUtils::omp-utils ALIAS omp-utils)
 
 if(OMP_UTILS_SHOW_IDE_SUPPORT)
     add_custom_target(omp-utils-ide SOURCES ${omp_utils_headers})
+    source_group(Headers\\omp\\utils FILES ${omp_utils_headers})
 endif()
 
 ###################################################################################################

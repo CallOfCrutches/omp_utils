@@ -28,7 +28,7 @@ namespace omp
 
       pointer operator->() const noexcept( noexcept( std::declval<Iterator>().operator->() ) )
       {
-        return _iterator.operator->();
+        return _iterator;
       }
 
       head_iterator& operator++() noexcept( noexcept( std::declval<Iterator>().operator++() ) )
@@ -99,12 +99,12 @@ namespace omp
       return const_iterator( _container.end(), std::size_t{} );
     }
 
-    auto cbegin() const noexcept( std::declval<std::add_const_t<head>>().begin() )
+    auto cbegin() const noexcept( noexcept( std::declval<std::add_const_t<head>>().begin() ) )
     {
       return begin();
     }
 
-    auto cend() const noexcept( std::declval<std::add_const_t<head>>().end() )
+    auto cend() const noexcept( noexcept( std::declval<std::add_const_t<head>>().end() ) )
     {
       return end();
     }

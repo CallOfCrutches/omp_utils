@@ -1,4 +1,4 @@
-#include "omp/utils/common.h"
+#include "omp/utils/tuple_map_reduce.h"
 
 #include "gtest/gtest.h"
 

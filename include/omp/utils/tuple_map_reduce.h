@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <utility>
 #include <tuple>
 
@@ -9,6 +10,7 @@ namespace omp
 
   namespace details
   {
+
     template<typename Tuple>
     constexpr bool support_get_one_( decltype( std::get<0>( std::declval<Tuple>() ), int() ) ) { return true; }
     template<typename>

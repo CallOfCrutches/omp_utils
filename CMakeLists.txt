@@ -20,7 +20,6 @@ target_include_directories(omp-utils INTERFACE
 
 set(omp_utils_headers
     include/omp/utils/enumerate.h
-    include/omp/utils/head.h
     include/omp/utils/in.h
     include/omp/utils/make_loaded_list.h
     include/omp/utils/range.h

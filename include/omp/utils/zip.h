@@ -1,7 +1,7 @@
 #pragma once
 
+#include "base_container_traits.h"
 #include "tuple_map_reduce.h"
-#include <type_traits>
 
 
 namespace omp
@@ -179,8 +179,8 @@ namespace omp
   template<typename... Containers>
   struct zip
   {
-    using iterator       = zip_iterator<decltype( details::functor::begin ()( std::declval<Containers&>() ) )...>;
-    using const_iterator = zip_iterator<decltype( details::functor::cbegin()( std::declval<Containers&>() ) )...>;
+    using iterator       = zip_iterator<typename base_container_traits<Containers>::iterator...>;
+    using const_iterator = zip_iterator<typename base_container_traits<Containers>::const_iterator...>;
 
     using value_type = typename iterator::value_type;
 

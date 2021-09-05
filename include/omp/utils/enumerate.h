@@ -1,5 +1,6 @@
 #pragma once
 
+#include "base_container_traits.h"
 #include <iterator>
 
 
@@ -130,20 +131,19 @@ namespace omp
     template<typename Container>
     struct enumerate
     {
-      using container_type = Container;
+      using traits = base_container_traits<Container>;
 
-      using container_iterator = decltype( std::begin( std::declval<container_type&>() ) );
-      using const_container_iterator = decltype( std::cbegin( std::declval<container_type&>() ) );
+      using container_iterator = typename traits::iterator;
+      using const_container_iterator = typename traits::const_iterator;
 
       using iterator = enumerate_iterator<container_iterator>;
       using const_iterator = enumerate_iterator<const_container_iterator>;
 
       using value_type = typename iterator::value_type;
-
       using difference_type = typename iterator::difference_type;
 
-      explicit enumerate( container_type container, std::ptrdiff_t start = {} )
-        : container_( std::forward<container_type>( container ) )
+      explicit enumerate( Container container, std::ptrdiff_t start = {} )
+        : container_( std::forward<Container>( container ) )
         , start_( start )
       {}
 
@@ -179,7 +179,7 @@ namespace omp
 
     private:
       std::ptrdiff_t start_{};
-      container_type container_;
+      Container container_;
     };
 
     template<typename ContainerType>

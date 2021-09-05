@@ -10,21 +10,21 @@ TEST( omp_enumerate, container_iterator_types )
   std::vector v = { 1, 2, 3, 4, 5 };
 
   auto e_is_iterator_1 = std::is_same_v<typename std::vector<int>::iterator,
-      typename decltype( omp::enumerate( v ) )::container_iterator>;
+      typename decltype( omp::enumerate( v ) )::iterator::wrapped_iterator>;
 
   auto e_is_citerator_1 = std::is_same_v<typename std::vector<int>::const_iterator,
-      typename decltype( omp::enumerate( std::as_const( v ) ) )::container_iterator>;
+      typename decltype( omp::enumerate( std::as_const( v ) ) )::iterator::wrapped_iterator>;
 
   auto e_is_iterator_2 = std::is_same_v<typename std::vector<int>::iterator,
-      typename decltype( omp::enumerate( std::move( v ) ) )::container_iterator>;
+      typename decltype( omp::enumerate( std::move( v ) ) )::iterator::wrapped_iterator>;
 
   auto e_is_citerator_2 = std::is_same_v<typename std::vector<int>::const_iterator,
-     typename decltype( omp::enumerate( std::move( std::as_const( v ) ) ) )::container_iterator>;
+     typename decltype( omp::enumerate( std::move( std::as_const( v ) ) ) )::iterator::wrapped_iterator>;
 
   ASSERT_TRUE( e_is_iterator_1 && e_is_citerator_1 && e_is_iterator_2 && e_is_citerator_2 );
 
   auto e_is_citerator = std::is_same_v<typename std::vector<int>::const_iterator,
-    typename decltype( omp::enumerate( v ) )::const_container_iterator>;
+    typename decltype( omp::enumerate( v ) )::const_iterator::wrapped_iterator>;
 
   ASSERT_TRUE( e_is_citerator );
 }
@@ -34,15 +34,15 @@ TEST( omp_enumerate, array_iterator_types )
   int arr[] = { 1, 2, 3, 4, 5 };
 
   auto e_is_iterator = std::is_same_v<int*,
-    typename decltype( omp::enumerate( arr ) )::container_iterator>;
+    typename decltype( omp::enumerate( arr ) )::iterator::wrapped_iterator>;
 
   auto e_is_citerator = std::is_same_v<const int*,
-    typename decltype( omp::enumerate( std::as_const( arr ) ) )::container_iterator>;
+    typename decltype( omp::enumerate( std::as_const( arr ) ) )::iterator::wrapped_iterator>;
 
   ASSERT_TRUE( e_is_iterator && e_is_citerator );
 
   auto e_is_citerator_1 = std::is_same_v<const int*,
-    typename decltype( omp::enumerate( arr ) )::const_container_iterator>;
+    typename decltype( omp::enumerate( arr ) )::const_iterator::wrapped_iterator>;
 
   ASSERT_TRUE( e_is_citerator_1 );
 }
@@ -52,25 +52,25 @@ TEST( omp_enumerate, pointer_iterator_types )
   int arr1[] = { 1, 2, 3, 4, 5 };
 
   auto e_is_iterator_1 = std::is_same_v<int*,
-    typename decltype( omp::enumerate( std::begin( arr1 ), std::end( arr1 ) ) )::container_iterator>;
+    typename decltype( omp::enumerate( std::begin( arr1 ), std::end( arr1 ) ) )::iterator::wrapped_iterator>;
 
   auto e_is_iterator_2 = std::is_same_v<int*,
     typename decltype( omp::enumerate( std::move( std::begin( arr1 ) ),
-                                       std::move( std::end( arr1 ) ) ) )::container_iterator>;
+                                       std::move( std::end( arr1 ) ) ) )::iterator::wrapped_iterator>;
 
   const int arr2[] = { 1, 2, 3, 4, 5 };
 
   auto e_is_citerator_1 = std::is_same_v<const int*,
-    typename decltype( omp::enumerate( std::begin( arr2 ), std::end( arr2 ) ) )::container_iterator>;
+    typename decltype( omp::enumerate( std::begin( arr2 ), std::end( arr2 ) ) )::iterator::wrapped_iterator>;
 
   auto e_is_citerator_2 = std::is_same_v<const int*,
     typename decltype( omp::enumerate( std::move( std::begin( arr2 ) ),
-                                       std::move( std::end( arr2 ) ) ) )::container_iterator>;
+                                       std::move( std::end( arr2 ) ) ) )::iterator::wrapped_iterator>;
 
   ASSERT_TRUE( e_is_iterator_1 && e_is_citerator_1 && e_is_iterator_2 && e_is_citerator_2 );
 
   auto e_is_citerator_3 = std::is_same_v<const int*,
-    typename decltype( omp::enumerate( arr1 ) )::const_container_iterator>;
+    typename decltype( omp::enumerate( arr1 ) )::const_iterator::wrapped_iterator>;
 
   ASSERT_TRUE( e_is_citerator_3 );
 }

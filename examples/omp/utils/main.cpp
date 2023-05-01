@@ -7,8 +7,7 @@ extern void make_loaded_list_examples();
 extern void range_examples();
 extern void reversed_examples();
 
-int main()
-{
+int main() {
   common_examples();
   enumerate_examples();
   in_examples();

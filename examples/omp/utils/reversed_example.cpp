@@ -3,22 +3,18 @@
 #include <iostream>
 #include <set>
 
+namespace {
+void reversed_example() {
+  std::set elements = {1, 2, 3, 4, 5};
 
-namespace
-{
-  void reversed_example()
-  {
-    std::set elements = { 1,2,3,4,5 };
+  for (auto element : omp::reversed(elements))
+    std::cout << element << " ";
 
-    for( auto element : omp::reversed( elements ) )
-      std::cout << element << " ";
-
-    std::cout << std::endl;
-  }
+  std::cout << std::endl;
 }
+} // namespace
 
-void reversed_examples()
-{
+void reversed_examples() {
   std::cout << "reversed examples\n";
 
   reversed_example();
